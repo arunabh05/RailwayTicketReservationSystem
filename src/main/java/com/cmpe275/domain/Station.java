@@ -1,6 +1,7 @@
 package com.cmpe275.domain;
 
 import javax.persistence.*;
+import java.util.List;
 
 /**
  *
@@ -15,6 +16,11 @@ public class Station {
     private Long id;
     private String name;
 
+
+    @OneToMany(targetEntity = Search.class)
+    List<Search> searchList;
+
+    public Station(){}
     public Station(String name){
         this.name = name;
     }
@@ -26,4 +32,8 @@ public class Station {
     public void setName(String name) {
         this.name = name;
     }
+
+    public Long getId() {return id;}
+
+    public void setId(Long id) {this.id = id;}
 }

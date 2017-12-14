@@ -1,12 +1,18 @@
 package com.cmpe275.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
+import org.apache.tomcat.jni.Local;
+
 import javax.persistence.*;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by arunabh.shrivastava on 12/1/2017.
+ * @author arunabh.shrivastava
+ *
  */
 @EqualsAndHashCode
 @Entity
@@ -19,15 +25,21 @@ public class Train {
     @Column(unique = true)
     private String name;
 
+    @ManyToOne(targetEntity = Search.class)
+    List<Search> searchList;
+
+    /*
     @OneToMany(mappedBy = "train")
+    @JsonIgnore
     private Set<Ticket> ticketSet;
+*/
     private Long capacity;
+
     private boolean isExpress;
     private LocalTime departureTime;
     private long rate;
 
-    public Train() {
-    }
+    public Train() {}
 
     public Train(String name, Long capacity, boolean isExpress, LocalTime departureTime, long rate) {
         this.name = name;
@@ -53,6 +65,7 @@ public class Train {
         this.name = name;
     }
 
+/*
     public Set<Ticket> getTicketSet() {
         return ticketSet;
     }
@@ -60,6 +73,7 @@ public class Train {
     public void setTicketSet(Set<Ticket> ticketSet) {
         this.ticketSet = ticketSet;
     }
+*/
 
     public Long getCapacity() {
         return capacity;

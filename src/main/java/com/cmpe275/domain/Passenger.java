@@ -20,12 +20,13 @@ public class Passenger {
     @Column(unique = true)
     private String email;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable( name = "PASSENGER_TRANSACTION", joinColumns = @JoinColumn( name = "passenger_id"),
             inverseJoinColumns = @JoinColumn(name = "transaction_id"))
     @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
     Set<Transaction> transactions;
 
+    public Passenger(){}
     public Passenger(String email, Set<Transaction> transactionSet) {
         this.email = email;
         this.transactions = transactionSet;
@@ -53,5 +54,13 @@ public class Passenger {
 
     public void setTransactions(Set<Transaction> transactions) {
         this.transactions = transactions;
+    }
+
+    public void addTransaction(Transaction transaction){
+        this.transactions.add(transaction);
+    }
+
+    public void removeTransaction(Transaction transaction){
+        this.transactions.remove(transaction);
     }
 }

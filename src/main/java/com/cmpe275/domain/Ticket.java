@@ -8,7 +8,8 @@ import java.util.Date;
 import java.util.Set;
 
 /**
- * Created by arunabh.shrivastava on 12/1/2017.
+ * @author arunabh.shrivastava
+ *
  */
 @Entity
 @Table(name = "TICKET")
@@ -17,32 +18,35 @@ public class Ticket {
     @Id
     @GeneratedValue
     private Long id;
-
     @ManyToOne(fetch = FetchType.EAGER)
     Transaction transaction;
     @ManyToOne(fetch=FetchType.EAGER)
-    private Train train;
-
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "from_station", referencedColumnName = "id")
-    private Station fromStation;
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "to_station", referencedColumnName = "id")
-    private Station toStation;
-
+    private Search train;
     private Long price;
     private String duration;
     private Date dateOfJourney;
 
     public Ticket(){}
 
-    public Ticket(Train train, Station fromStation, Station toStation, Long price, String duration, Date dateOfJourney) {
-        this.train = train;
-        this.fromStation = fromStation;
-        this.toStation = toStation;
-        this.price = price;
-        this.duration = duration;
+    public Ticket(Search search){
+        this.train = search;
+        this.price = search.getPrice();
+        this.duration = search.getDuration();
+    }
+
+    public Ticket(Search search, Date dateOfJourney) {
+        this.train = search;
+        this.price = search.getPrice();
+        this.duration = search.getDuration();
         this.dateOfJourney = dateOfJourney;
+    }
+
+    public Search getTrain() {
+        return train;
+    }
+
+    public void setTrain(Search train) {
+        this.train = train;
     }
 
     public Long getId() {
@@ -51,30 +55,6 @@ public class Ticket {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Train getTrains() {
-        return train;
-    }
-
-    public void setTrains(Train trains) {
-        this.train = trains;
-    }
-
-    public Station getFromStation() {
-        return fromStation;
-    }
-
-    public void setFromStation(Station fromStation) {
-        this.fromStation = fromStation;
-    }
-
-    public Station getToStation() {
-        return toStation;
-    }
-
-    public void setToStation(Station toStation) {
-        this.toStation = toStation;
     }
 
     public Long getPrice() {

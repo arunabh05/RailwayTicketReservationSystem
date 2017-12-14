@@ -1,7 +1,13 @@
 package com.cmpe275.service;
 
+import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author arunabh.shrivastava
  */
-public class TicketService {
+@Service
+public class TicketService{
 }

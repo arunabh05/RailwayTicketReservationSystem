@@ -24,14 +24,23 @@ public class Transaction {
     private Set<Passenger> passengers;
 
     @OneToMany(mappedBy = "transaction")
-    private Set<Ticket> ticketset;
+    private Set<Ticket> tickets;
     private long price;
     private String duration;
+    private final long TRANSACTION_FEE = 1;
 
-    public Transaction(Set<Passenger> passengers, Set<Ticket> ticketset, long price, String duration) {
+    public Transaction(){}
+
+    public Transaction(Set<Ticket> tickets, long price, String duration) {
+        this.tickets = tickets;
+        this.price = TRANSACTION_FEE+price;
+        this.duration = duration;
+    }
+
+    public Transaction(Set<Passenger> passengers, Set<Ticket> tickets, long price, String duration) {
         this.passengers = passengers;
-        this.ticketset = ticketset;
-        this.price = price;
+        this.tickets = tickets;
+        this.price = TRANSACTION_FEE+price;
         this.duration = duration;
     }
 
@@ -51,12 +60,12 @@ public class Transaction {
         this.passengers = passengers;
     }
 
-    public Set<Ticket> getTicketset() {
-        return ticketset;
+    public Set<Ticket> getTickets() {
+        return tickets;
     }
 
-    public void setTicketset(Set<Ticket> ticketset) {
-        this.ticketset = ticketset;
+    public void setTickets(Set<Ticket> tickets) {
+        this.tickets = tickets;
     }
 
     public long getPrice() {
@@ -64,7 +73,7 @@ public class Transaction {
     }
 
     public void setPrice(long price) {
-        this.price = price;
+        this.price = price + TRANSACTION_FEE;
     }
 
     public String getDuration() {

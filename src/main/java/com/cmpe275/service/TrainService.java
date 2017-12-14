@@ -1,10 +1,12 @@
 package com.cmpe275.service;
 
-import com.cmpe275.domain.Train;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
  * @author arunabh.shrivastava
  */
-public class TrainService {}
+@Service
+public class TrainService {
+}
