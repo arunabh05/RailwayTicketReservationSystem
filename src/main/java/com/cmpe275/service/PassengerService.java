@@ -1,7 +1,12 @@
 package com.cmpe275.service;
 
+import org.springframework.http.ResponseEntity;
+
 /**
  * @author arunabh.shrivastava
  */
-public class PassengerService {
+public interface PassengerService {
+
+    /*ResponseEntity<Object> verifyLogin(String username, String password);*/
+
 }

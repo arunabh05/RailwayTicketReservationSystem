@@ -20,4 +20,5 @@ public interface SearchRepository extends CrudRepository<Search, Long> {
     Set<Search> findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
             (Station fromStation, Station toStation, String departureTimeAfter, String departureTimeBefore);
 
+
 }

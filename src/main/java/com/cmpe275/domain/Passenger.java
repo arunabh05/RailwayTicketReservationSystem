@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import javax.persistence.*;
+import javax.ws.rs.Encoded;
 import java.util.Set;
 
 /**
@@ -17,8 +18,15 @@ public class Passenger {
     @Id
     @GeneratedValue
     private Long id;
+
     @Column(unique = true)
     private String email;
+
+    private String password;
+
+    private String firstName;
+
+    private String lastName;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable( name = "PASSENGER_TRANSACTION", joinColumns = @JoinColumn( name = "passenger_id"),
@@ -27,8 +35,9 @@ public class Passenger {
     Set<Transaction> transactions;
 
     public Passenger(){}
-    public Passenger(String email, Set<Transaction> transactionSet) {
+    public Passenger(String email, String password, Set<Transaction> transactionSet) {
         this.email = email;
+        this.password = password;
         this.transactions = transactionSet;
     }
 
@@ -62,5 +71,13 @@ public class Passenger {
 
     public void removeTransaction(Transaction transaction){
         this.transactions.remove(transaction);
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
