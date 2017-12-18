@@ -1,6 +1,5 @@
 package com.cmpe275.domain;
 
-
 import javax.persistence.*;
 import java.util.List;
 

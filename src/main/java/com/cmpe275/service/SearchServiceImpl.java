@@ -133,7 +133,7 @@ public class SearchServiceImpl implements SearchService {
         Ticket ticket;
         for(Search search: trainsList){
             if(ticketService.isTrainAvailable(search, dateOfJourney, numberOfPassengers)){
-                DateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+                DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
                 try {
                     Date date = df.parse(dateOfJourney);
                     ticket = new Ticket(search, date, numberOfPassengers);
@@ -190,7 +190,7 @@ public class SearchServiceImpl implements SearchService {
             long price;
             for(Search search: searches){
                 try {
-                    DateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+                    DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
                     Date date = df.parse(dateOfJourney);
                     ticket = new Ticket(search, date, numberOfPassengers);
                     tickets.add(ticket);
@@ -398,7 +398,7 @@ public class SearchServiceImpl implements SearchService {
 
         for (Search aTrainList : trainList) {
             tickets = new ArrayList<>();
-            DateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
             try {
                 Date date = df.parse(dateOfJourney);
                 ticket = new Ticket(aTrainList, date, numberOfPassengers);
@@ -432,7 +432,7 @@ public class SearchServiceImpl implements SearchService {
         for(int i = 0; i<trainList.size(); i++){
             tickets = new ArrayList<>();
 
-            DateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
             Date date = null;
             try {
                 date = df.parse(dateOfJourney);
@@ -510,7 +510,7 @@ public class SearchServiceImpl implements SearchService {
             Search firstTrain = connectingTrainTimeMap.get(arrivalTimeTrainList.get(i)).get(0);
             Search secondTrain = connectingTrainTimeMap.get(arrivalTimeTrainList.get(i)).get(1);
 
-            DateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
             Date firstTrainDate;
             Date secondTrainDate;

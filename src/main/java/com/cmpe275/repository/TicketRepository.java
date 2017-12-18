@@ -2,6 +2,7 @@ package com.cmpe275.repository;
 
 import com.cmpe275.domain.Search;
 import com.cmpe275.domain.Ticket;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Date;
