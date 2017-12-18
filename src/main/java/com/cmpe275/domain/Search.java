@@ -84,7 +84,7 @@ public class Search {
         if(train.isExpress()){
             return calculateExpressDepartureTime();
         }
-        LocalTime departureTime = train.getDepartureTime();
+        LocalTime departureTime = LocalTime.parse(train.getDepartureTime());
         long noOfStation = getNumberOfStations();
         long minutes = 8*noOfStation;
         return departureTime.plusMinutes(minutes).toString();
@@ -99,7 +99,7 @@ public class Search {
     }
 
     private String calculateExpressDepartureTime(){
-        LocalTime expressDepartureTime = train.getDepartureTime();
+        LocalTime expressDepartureTime = LocalTime.parse(train.getDepartureTime());
         long noOfStation = getNumberOfStations();
         long minutes = 33*(noOfStation/5);
         return expressDepartureTime.plusMinutes(minutes).toString();

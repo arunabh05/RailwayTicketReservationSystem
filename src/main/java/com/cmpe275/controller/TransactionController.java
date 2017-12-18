@@ -7,10 +7,7 @@ import com.cmpe275.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
@@ -19,19 +16,25 @@ import java.util.Set;
  * @author arunabh.shrivastava
  */
 @RestController
-@RequestMapping(value = "/api/transaction")
 public class TransactionController {
 
     @Autowired
     TransactionService transactionService;
 
-    @PostMapping
+    @RequestMapping(value = "/api/transaction")
     public ResponseEntity<?> makeTransaction(@RequestParam(value = "userId") Long userId,
-                                             @RequestParam(value = "passengers") List<Long> passengers,
-                                             @RequestParam(value = "ticketList") List<Ticket> ticketSet){
-       // transactionService.makeTransaction(userId ,passengers, ticketSet);
-        return new ResponseEntity<>("", HttpStatus.OK);
+                                             @RequestBody Transaction transaction){
+        Transaction transaction1 = transactionService.makeTransaction(userId , transaction);
+        return new ResponseEntity<>(transaction1, HttpStatus.OK);
     }
 
+
+    @RequestMapping(value = "/api/deleteTransaction")
+    public ResponseEntity<?> deleteTransaction(@RequestParam(value = "transactionId") Long transactionId,
+                                               @RequestParam(value = "userId") Long userId) {
+
+        Transaction transaction2 = transactionService.deleteTransaction(userId, transactionId);
+        return new ResponseEntity<>(transaction2, HttpStatus.OK);
+    }
 
 }

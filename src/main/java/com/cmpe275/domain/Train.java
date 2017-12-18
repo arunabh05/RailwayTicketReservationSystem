@@ -36,12 +36,12 @@ public class Train {
     private Long capacity;
 
     private boolean isExpress;
-    private LocalTime departureTime;
+    private String departureTime;
     private long rate;
 
     public Train() {}
 
-    public Train(String name, Long capacity, boolean isExpress, LocalTime departureTime, long rate) {
+    public Train(String name, Long capacity, boolean isExpress, String departureTime, long rate) {
         this.name = name;
         this.capacity = capacity;
         this.isExpress = isExpress;
@@ -91,11 +91,11 @@ public class Train {
         isExpress = express;
     }
 
-    public LocalTime getDepartureTime() {
+    public String getDepartureTime() {
         return departureTime;
     }
 
-    public void setDepartureTime(LocalTime departureTime) {
+    public void setDepartureTime(String departureTime) {
         this.departureTime = departureTime;
     }
 

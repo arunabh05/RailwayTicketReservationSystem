@@ -1,9 +1,13 @@
 package com.cmpe275.domain;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import javax.persistence.*;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Set;
 
@@ -18,13 +22,32 @@ public class Ticket {
     @Id
     @GeneratedValue
     private Long id;
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
-    Transaction transaction;
+    private Transaction transaction;
     @ManyToOne(fetch=FetchType.EAGER)
     private Search train;
     private Long price;
     private String duration;
+    @Temporal(TemporalType.DATE)
     private Date dateOfJourney;
+    private int numberOfPassengers;
+
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(Transaction transaction) {
+        this.transaction = transaction;
+    }
+
+    public int getNumberOfPassengers() {
+        return numberOfPassengers;
+    }
+
+    public void setNumberOfPassengers(int numberOfPassengers) {
+        this.numberOfPassengers = numberOfPassengers;
+    }
 
     public Ticket(){}
 
@@ -73,8 +96,9 @@ public class Ticket {
         this.duration = duration;
     }
 
-    public Date getDateOfJourney() {
-        return dateOfJourney;
+    public String getDateOfJourney() {
+        DateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+        return df.format(dateOfJourney);
     }
 
     public void setDateOfJourney(Date dateOfJourney) {

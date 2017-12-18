@@ -1,5 +1,6 @@
 package com.cmpe275.domain;
 
+import com.cmpe275.repository.TransactionRepository;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
@@ -20,10 +21,10 @@ public class Passenger {
     @Column(unique = true)
     private String email;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable( name = "PASSENGER_TRANSACTION", joinColumns = @JoinColumn( name = "passenger_id"),
-            inverseJoinColumns = @JoinColumn(name = "transaction_id"))
-    @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
+    @OneToMany(fetch = FetchType.EAGER)
+//    @JoinTable( name = "PASSENGER_TRANSACTION", joinColumns = @JoinColumn( name = "passenger_id"),
+//            inverseJoinColumns = @JoinColumn(name = "transaction_id"))
+//    @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
     Set<Transaction> transactions;
 
     public Passenger(){}
@@ -62,5 +63,9 @@ public class Passenger {
 
     public void removeTransaction(Transaction transaction){
         this.transactions.remove(transaction);
+    }
+
+    public void removeAllTransactions() {
+        this.getTransactions().clear();
     }
 }

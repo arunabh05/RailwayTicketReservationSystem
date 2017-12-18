@@ -64,8 +64,8 @@ public class InitializationBean {
             String expressStationNameList = "AFKPUZ";
             List<Station> stations = (List<Station>) stationRepository.findAll();
 
-            Train northboundTrain = new Train(northBoundName, DEFAULT_TRAIN_CAPACITY ,isExpress, departureTime , priceRate);
-            Train southboundTrain = new Train(southBoundName, DEFAULT_TRAIN_CAPACITY ,isExpress, departureTime,  priceRate);
+            Train northboundTrain = new Train(northBoundName, DEFAULT_TRAIN_CAPACITY ,isExpress, departureTime.toString() , priceRate);
+            Train southboundTrain = new Train(southBoundName, DEFAULT_TRAIN_CAPACITY ,isExpress, departureTime.toString(),  priceRate);
 
             System.out.println(northBoundName + " -- " + isExpress + " -- " + startTime + " -- ");
             System.out.println(southBoundName + " -- " + isExpress + " -- " + startTime + " -- ");
