@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalTime;
-import java.util.Set;
+import java.util.List;
 
 /**
  * @author arunabh.shrivastava
@@ -16,16 +16,18 @@ public class Search {
     @Id
     @GeneratedValue
     private long id;
+
     @ManyToOne(targetEntity = Train.class)
     @JoinColumn(name = "train_id")
     private Train train;
+
     @ManyToOne(targetEntity = Station.class)
     @JoinColumn(name = "to_station_id")
     private Station toStation;
 
     @OneToMany(mappedBy = "train")
     @JsonIgnore
-    private Set<Ticket> ticketSet;
+    private List<Ticket> ticketSet;
 
 
     @ManyToOne(targetEntity = Station.class)
@@ -38,6 +40,7 @@ public class Search {
     private String arrivalTime;
 
     public Search(){}
+
     public Search(Train train, Station fromStation, Station toStation) {
         this.train = train;
         this.toStation = toStation;
@@ -161,7 +164,7 @@ public class Search {
         this.fromStation = fromStation;
     }
 
-    public long getPrice() {
+    long getPrice() {
         return price;
     }
 
@@ -169,7 +172,7 @@ public class Search {
         this.price = price;
     }
 
-    public String getDuration() {
+    String getDuration() {
         return duration;
     }
 

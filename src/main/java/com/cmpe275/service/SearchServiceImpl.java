@@ -19,85 +19,309 @@ public class SearchServiceImpl implements SearchService {
     StationRepository stationRepository;
     private final
     SearchRepository searchRepository;
+    private final
+    TicketService ticketService;
     @Autowired
-    public SearchServiceImpl(StationRepository stationRepository, SearchRepository searchRepository) {
+    public SearchServiceImpl(StationRepository stationRepository, SearchRepository searchRepository, TicketService ticketService) {
         this.stationRepository = stationRepository;
         this.searchRepository = searchRepository;
+        this.ticketService = ticketService;
     }
 
 
-    public Set<Transaction> getAvailableTrains(int numberOfPassengers, String departureTime, Long fromStationId,
+    public List<Transaction> getAvailableTrains(int numberOfPassengers, String departureTime, Long fromStationId,
                                                Long toStationId, String ticketType, String connections,
-                                               boolean roundTrip) {
+                                               boolean roundTrip, String returnDate, String returnTime,
+                                               String dateOfJourney) {
+
+
         Station fromStation = stationRepository.findOne(fromStationId);
         Station toStation = stationRepository.findOne(toStationId);
-        Set<Transaction> transactionSet = filterTrainByConnections(ticketType,connections, fromStation, toStation,
-                departureTime, numberOfPassengers);
-        return transactionSet;
+        //printTransaction(transactionSet);
+        return filterTrainByConnections(ticketType,connections, fromStation, toStation,
+                departureTime, numberOfPassengers, dateOfJourney, roundTrip, returnDate, returnTime);
     }
 
-    private Set<Transaction> filterTrainByConnections(String ticketType, String connections, Station fromStation,
-            Station toStation, String departureTime, int numberOfPassengers){
+    private List<Transaction> filterTrainByConnections(String ticketType, String connections, Station fromStation,
+            Station toStation, String departureTime, int numberOfPassengers, String dateOfJourney, boolean roundTrip,
+                                                      String returnDate, String returnTime){
         if(connections.equalsIgnoreCase("none")){
-            return getTrainsWithNoStop(fromStation, toStation, ticketType, departureTime, numberOfPassengers);
+            return getTrainsWithNoStop(fromStation, toStation, ticketType, departureTime,numberOfPassengers ,roundTrip,
+                    returnDate, returnTime, dateOfJourney);
         }
         else if(connections.equalsIgnoreCase("one")){
-            return getTrainsWithOneStop(fromStation, toStation,ticketType, departureTime, numberOfPassengers);
+            return getTrainsWithOneStop(fromStation, toStation,ticketType, departureTime, numberOfPassengers, roundTrip,
+                    returnDate, returnTime, dateOfJourney);
         }else{
-            return getAllAvailableTrains(fromStation, toStation, ticketType, departureTime, numberOfPassengers);
+            return getAllAvailableTrains(fromStation, toStation, ticketType, departureTime, numberOfPassengers, roundTrip,
+                    returnDate, returnTime, dateOfJourney);
         }
     }
 
-    private Set<Transaction> getAllAvailableTrains(Station fromStation, Station toStation, String ticketType,
-            String departureTime, int numberOfPassengers){
 
-        Set<Search> allTrainsFromFirstStation = getAllTrainsFromStations(fromStation, departureTime);
-        allTrainsFromFirstStation = filterTrainsByTicketType(allTrainsFromFirstStation, ticketType);
-        for(Search search: allTrainsFromFirstStation){
-            Set<Search> allTrainsFromSecondStation = getAllTrainsFromStations(search.getToStation(), search.getArrivalTime());
-            allTrainsFromSecondStation = filterTrainsByTicketType(allTrainsFromSecondStation, ticketType);
-            String departureTimeBefore = LocalTime.parse(departureTime).plusMinutes(120).toString();
-            for(Search search1: allTrainsFromSecondStation){
-                Set<Search> allTrainsToDestination = searchRepository
-                        .findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime(search1.getToStation(), toStation, search1.getArrivalTime(), departureTimeBefore);
-                allTrainsFromSecondStation = filterTrainsByTicketType(allTrainsFromSecondStation, ticketType);
+    private List<Transaction> getAllAvailableTrains(Station fromStation, Station toStation, String ticketType,
+            String departureTime, int numberOfPassengers, boolean roundTrip, String returnDate, String returnTime,
+                                                    String dateOfJourney){
+        List<List<Search>> trainsList = getTwoStopTrainsList(fromStation, toStation,ticketType, departureTime,
+                dateOfJourney, numberOfPassengers);
+        List<Transaction> transactionList = new ArrayList<>();
+        if(roundTrip){
+            List<List<Search>> returnTrainList = getTwoStopTrainsList(toStation, fromStation,ticketType, returnTime,
+                    returnDate, numberOfPassengers);
+            transactionList.addAll(createTransactionForRoundTripTwoStopTrain(trainsList, returnTrainList, dateOfJourney,
+                    numberOfPassengers, returnDate));
+            printTransaction(transactionList);
 
-                System.out.println(fromStation.getName() +" to "+ search.getToStation().getName()
-                        +" to "+ search1.getToStation()+" to "+ toStation);
+        }else{
+            transactionList.addAll(createTransactionForSingleTripTwoStopTrains(trainsList, numberOfPassengers, dateOfJourney));
+            printTransaction(transactionList);
+        }
+
+        transactionList.addAll(getTrainsWithNoStop(fromStation,toStation,ticketType,departureTime,numberOfPassengers
+                ,roundTrip,returnDate,returnTime,dateOfJourney));
+        transactionList.addAll(getTrainsWithOneStop(fromStation,toStation,ticketType,departureTime,numberOfPassengers
+                ,roundTrip,returnDate,returnTime,dateOfJourney));
+
+        return transactionList;
+    }
+
+    private List<Transaction> createTransactionForRoundTripTwoStopTrain(List<List<Search>> trainsList,
+            List<List<Search>> returnTrainList, String dateOfJourney, int numberOfPassengers, String returnDate){
+
+        List<Transaction> transactionList = new ArrayList<>();
+        Transaction transaction;
+
+        for(int i=0;i<5;i++){
+            List<Ticket> tickets = new ArrayList<>();
+
+            if(trainsList.size() > i && returnTrainList.size() > i){
+
+                tickets.addAll(getAllTicketsForRoundTripTwoStopTrains(trainsList.get(i), dateOfJourney, numberOfPassengers));
+                tickets.addAll(getAllTicketsForRoundTripTwoStopTrains(returnTrainList.get(i), returnDate, numberOfPassengers));
+
+                long price = getAllTicketsPriceForRoundTripTwoStopTrains(tickets);
+                String duration = getAllTicketsDurationForRoundTripTwoStopTrains(tickets);
+                transaction = new Transaction(tickets, price, duration);
+                transactionList.add(transaction);
+            }
+        }
+        return transactionList;
+    }
+
+    private long getAllTicketsPriceForRoundTripTwoStopTrains(List<Ticket> tickets){
+        long price = 0;
+        for(Ticket ticket: tickets){
+            price+=ticket.getPrice();
+        }
+        return price;
+    }
+
+    private String getAllTicketsDurationForRoundTripTwoStopTrains(List<Ticket> tickets){
+        String duration = "00:00";
+        for(Ticket ticket: tickets){
+            duration = LocalTime.parse(duration).plusSeconds(LocalTime.parse(ticket.getDuration()).toSecondOfDay()).toString();
+        }
+        return duration;
+    }
+
+    private List<Ticket> getAllTicketsForRoundTripTwoStopTrains(List<Search> trainsList, String dateOfJourney,
+                                                                int numberOfPassengers){
+        List<Ticket> tickets = new ArrayList<>();
+        Ticket ticket;
+
+        for(Search search: trainsList){
+            if(ticketService.isTrainAvailable(search, dateOfJourney, numberOfPassengers)){
+                ticket = new Ticket(search, dateOfJourney, numberOfPassengers);
+                tickets.add(ticket);
+            }
+        }
+        return tickets;
+    }
+
+    private List<List<Search>> getTwoStopTrainsList(Station fromStation, Station toStation, String ticketType, String departureTime,
+                                                    String dateOfJourney, int numberOfPassengers){
+        List<Search> firstStopTrains = getTop5TrainsFromStations(fromStation, departureTime);
+        firstStopTrains = filterTrainsByTicketType(firstStopTrains, ticketType);
+        List<Search> secondStopTrains;
+        List<Search> thirdStopTrains;
+
+        List<List<Search>> trainsList = new ArrayList<>();
+        for(Search search : firstStopTrains){
+            secondStopTrains = getTop5TrainsFromStations(search.getToStation(), search.getArrivalTime());
+            for(Search search1: secondStopTrains){
+                String departureTimeBefore = LocalTime.parse(search1.getArrivalTime()).plusMinutes(120).toString();
+                thirdStopTrains = searchRepository.findTop5ByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
+                        (search1.getToStation(), toStation, search1.getDepartureTime(), departureTimeBefore);
+
+                List<Search> fastestRoute = getFastestConnectingTwoStopsTrain(firstStopTrains, secondStopTrains,
+                        thirdStopTrains,dateOfJourney, numberOfPassengers);
+
+                if(trainsList.size() < 5){
+                    printFastestRoute(fastestRoute);
+                    trainsList.add(fastestRoute);
+                }else {
+                    break;
+                }
+            }
+        }
+        return trainsList;
+    }
+
+    private List<Transaction> createTransactionForSingleTripTwoStopTrains(List<List<Search>> trainsList,
+                                                                          int numberOfPassengers, String dateOfJourney){
+
+        List<Transaction> transactionList = new ArrayList<>();
+        List<Ticket> tickets;
+        Transaction transaction;
+        Ticket ticket;
+
+        for(List<Search> searches: trainsList){
+            tickets = new ArrayList<>();
+            String duration;
+            long price;
+            for(Search search: searches){
+
+                ticket = new Ticket(search, dateOfJourney, numberOfPassengers);
+                tickets.add(ticket);
             }
 
+            price=getAllTicketsPriceForRoundTripTwoStopTrains(tickets);
+            duration= getAllTicketsDurationForRoundTripTwoStopTrains(tickets);
+
+            transaction = new Transaction(tickets, price, duration);
+            transactionList.add(transaction);
         }
-        return null;
+        return transactionList;
+    }
+
+    private void printFastestRoute(List<Search> fastestRoute){
+        for(Search search: fastestRoute){
+            System.out.println(search.getFromStation().getName() + " to " + search.getToStation().getName());
+            System.out.println(search.getDepartureTime() + " - " + search.getArrivalTime());
+            System.out.println("");
+        }
+        System.out.println("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
     }
 
 
-    private Set<Transaction> getTrainsWithOneStop(Station fromStation, Station toStation,
-            String ticketType, String departureTime, int numberOfPassengers){
-        Set<Search> allTrainFromSource = getAllTrainsFromStations(fromStation, departureTime);
+    private List<Search> getFastestConnectingTwoStopsTrain(List<Search> firstStopTrains, List<Search> secondStopTrain,
+                                                           List<Search> thirdStopTrains, String dateOfJourney, int numberOfPassengers){
+
+        List<Search> fastestTrainsList = new ArrayList<>();
+        LocalTime maxArrivalTime = LocalTime.of(23, 0);
+        for(Search firstTrain: firstStopTrains){
+            for(Search secondTrain : secondStopTrain){
+                for(Search thirdTrain: thirdStopTrains){
+                    if (firstTrain.getToStation().equals(secondTrain.getFromStation()) &&
+                            secondTrain.getToStation().equals(thirdTrain.getFromStation())) {
+
+                        LocalTime arrivalTime = LocalTime.parse(thirdTrain.getArrivalTime());
+                        if (arrivalTime.isBefore(maxArrivalTime) && ticketService.isTrainAvailable(firstTrain,
+                                dateOfJourney, numberOfPassengers) && ticketService.isTrainAvailable(secondTrain,
+                                dateOfJourney, numberOfPassengers) && ticketService.isTrainAvailable(thirdTrain,
+                                dateOfJourney, numberOfPassengers)) {
+                            fastestTrainsList = new ArrayList<>();
+                            fastestTrainsList.add(firstTrain);
+                            fastestTrainsList.add(secondTrain);
+                            fastestTrainsList.add(thirdTrain);
+                            maxArrivalTime = arrivalTime;
+                        }
+                    }
+                }
+            }
+        }
+        return fastestTrainsList;
+    }
+
+
+
+    private List<Transaction> getTrainsWithOneStop(Station fromStation, Station toStation,
+            String ticketType, String departureTime, int numberOfPassengers, boolean roundTrip, String returnDate,
+                                                  String returnTime, String dateOfJourney){
+
+        Map<Integer, List<Search>> connectingTrainTimeMap = getOneStopTrainsTimeMap(fromStation, toStation, ticketType, departureTime);
+        if(roundTrip){
+            Map<Integer, List<Search>> returnConnectingTrainTimeMap = getOneStopTrainsTimeMap(toStation, fromStation, ticketType, returnTime);
+
+            return createTransactionForRoundTripOneStopTrains(connectingTrainTimeMap, returnConnectingTrainTimeMap,
+                    numberOfPassengers, dateOfJourney, returnDate);
+        }else{
+            return createTransactionForSingleTripOneStopTrains(connectingTrainTimeMap, numberOfPassengers, dateOfJourney);
+        }
+    }
+
+    private List<Transaction> createTransactionForRoundTripOneStopTrains(Map<Integer, List<Search>> connectingTrainTimeMap,
+                                                                         Map<Integer, List<Search>> returnConnectingTrainTimeMap, int numberOfPassengers,
+                                                                         String dateOfJourney, String returnDate){
+
+        Map<Integer, List<Ticket>> ticketMap = getTicketMapForOneStopTrains(connectingTrainTimeMap, numberOfPassengers, dateOfJourney);
+        Map<Integer, List<Ticket>> returnTicketMap = getTicketMapForOneStopTrains(returnConnectingTrainTimeMap, numberOfPassengers, returnDate);
+
+        List<Transaction> transactionList = new ArrayList<>();
+        Transaction transaction;
+        List<Ticket> tickets;
+        for(Integer integer: ticketMap.keySet()){
+            tickets = new ArrayList<>();
+
+            tickets.addAll(ticketMap.get(integer));
+            tickets.addAll(returnTicketMap.get(integer));
+
+            long totalPrice = ticketMap.get(integer).get(0).getPrice() + ticketMap.get(integer).get(1).getPrice() +
+                    returnTicketMap.get(integer).get(0).getPrice() + returnTicketMap.get(integer).get(1).getPrice();
+                transaction = new Transaction(tickets, totalPrice,"");
+
+            transactionList.add(transaction);
+        }
+        return transactionList;
+    }
+
+
+    private void printTransaction(List<Transaction> transactionList){
+        for(Transaction transaction: transactionList){
+            System.out.println("List of Tickets ::");
+            for(Ticket ticket: transaction.getTickets()){
+                System.out.println(ticket.getTrain().getFromStation().getName() + "  to  " +ticket.getTrain().getToStation().getName());
+                System.out.println(ticket.getTrain().getDepartureTime() + "  to  " +ticket.getTrain().getArrivalTime());
+            }
+            System.out.println(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+        }
+    }
+
+    private Map<Integer, List<Search>> getOneStopTrainsTimeMap(Station fromStation, Station toStation,
+                                                               String ticketType, String departureTime){
+
+        List<Search> allTrainFromSource = getAllTrainsFromStations(fromStation, departureTime);
         allTrainFromSource = filterTrainsByTicketType(allTrainFromSource, ticketType);
 
-        Map<Search, Set<Search>> connectingTrainsMap = new HashMap<>();
-        Set<Search> connectingTrains;
+        Map<Search, List<Search>> connectingTrainsMap = new HashMap<>();
+        List<Search> connectingTrains;
         for(Search search : allTrainFromSource){
-            connectingTrains = new HashSet<>();
+            connectingTrains = new ArrayList<>();
             String departureTimeBefore = LocalTime.parse(search.getArrivalTime()).plusMinutes(120).toString();
             String secondTrainDepartureTime = LocalTime.parse(search.getArrivalTime()).plusMinutes(5).toString();
             connectingTrains.addAll(searchRepository.findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
                     (search.getToStation(),toStation, secondTrainDepartureTime , departureTimeBefore));
             connectingTrainsMap.put(search, connectingTrains);
         }
-        Map<Integer, List<Search>> connectingTrainTimeMap =  getFastestConnectingTrains(connectingTrainsMap);
-        return createTransactionForTop5Trains(connectingTrainTimeMap, numberOfPassengers);
+        return getFastestConnectingTrains(connectingTrainsMap);
     }
 
-
-    private Set<Search> getAllTrainsFromStations(Station fromStation, String departureTime){
+    private List<Search> getAllTrainsFromStations(Station fromStation, String departureTime){
+        departureTime = LocalTime.parse(departureTime).plusMinutes(5).toString();
         String twoHoursFromDepartureTime = LocalTime.parse(departureTime).plusMinutes(120).toString();
         return searchRepository.findAllByFromStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
                 (fromStation, departureTime, twoHoursFromDepartureTime);
     }
 
-    private Map<Integer, List<Search>> getFastestConnectingTrains(Map<Search, Set<Search>> connectingTrainsMap) {
+
+    private List<Search> getTop5TrainsFromStations(Station fromStation, String departureTime){
+        departureTime = LocalTime.parse(departureTime).plusMinutes(5).toString();
+        String twoHoursFromDepartureTime = LocalTime.parse(departureTime).plusMinutes(120).toString();
+        return searchRepository.findTop5ByFromStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
+                (fromStation, departureTime, twoHoursFromDepartureTime);
+    }
+
+    private Map<Integer, List<Search>> getFastestConnectingTrains(Map<Search, List<Search>> connectingTrainsMap) {
 
         Map<Integer, List<Search>> connectingTrainTimeMap = new HashMap<>();
         LocalTime maxArrivalTime = LocalTime.of(23, 0);
@@ -125,71 +349,150 @@ public class SearchServiceImpl implements SearchService {
         return connectingTrainTimeMap;
     }
 
-    private Set<Transaction> getTrainsWithNoStop(Station fromStation, Station toStation, String ticketType,
-                                                 String departureTime, int numberOfPassengers){
-        Set<Search> searchSet = searchRepository.findTop5ByFromStationAndToStationAndDepartureTimeAfterOrderByArrivalTime
-                (fromStation, toStation, departureTime);
-        searchSet = filterTrainsByTicketType(searchSet, ticketType);
+    private List<Transaction> getTrainsWithNoStop(Station fromStation, Station toStation, String ticketType,
+                                                 String departureTime, int numberOfPassengers, boolean roundTrip,
+                                                 String returnDate, String returnTime, String dateOfJourney){
 
-        Ticket ticket;
-        Set<Ticket> ticketSet;
-        Set<Transaction> transactionSet = new HashSet<>();
-        Transaction transaction;
+        departureTime = LocalTime.parse(departureTime).plusMinutes(5).toString();
+        String departureTimeBefore = LocalTime.parse(departureTime).plusMinutes(300).toString();
+        List<Search> trainSet = searchRepository.findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
+                (fromStation, toStation, departureTime, departureTimeBefore);
+        trainSet = filterTrainsByTicketType(trainSet, ticketType);
 
-        for(Search search: searchSet){
-            System.out.println(search.getFromStation().getName() +"::"+search.getDepartureTime()+"::"+
-                    search.getToStation().getName() + "::" + search.getArrivalTime());
-            System.out.println(":::::::::::::::::::");
+        List<Transaction> transactionList;
+        List<Search> returnTrainList;
 
-            ticketSet = new HashSet<>();
-            ticket = new Ticket(search);
-            ticketSet.add(ticket);
-            transaction = new Transaction(ticketSet, search.getPrice(), search.getDuration());
-            transactionSet.add(transaction);
+        if(roundTrip){
+            returnTime = LocalTime.parse(returnTime).plusMinutes(5).toString();
+            String returnTimeBefore = LocalTime.parse(returnTime).plusMinutes(300).toString();
+            returnTrainList = searchRepository.findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
+                    (toStation, fromStation, returnTime, returnTimeBefore);
+            returnTrainList = filterTrainsByTicketType(returnTrainList, ticketType);
+            transactionList = createTransactionForRoundTripNoStopTrains(trainSet, returnTrainList, dateOfJourney, returnDate, numberOfPassengers);
+        }else{
+            transactionList = createTransactionForSingleTripNoStopTrain(trainSet, dateOfJourney, numberOfPassengers);
         }
-        return transactionSet;
+        return transactionList;
     }
 
-    private Set<Transaction> createTransactionForTop5Trains(Map<Integer, List<Search>> connectingTrainTimeMap,
-                                                            int numberOfPassengers){
+    private List<Transaction> createTransactionForSingleTripNoStopTrain(List<Search> trainList, String dateOfJourney,
+                                                                        int numberOfPassengers){
+        List<Transaction> transactionList = new ArrayList<>();
+        Ticket ticket;
+        List<Ticket> tickets;
+        Transaction transaction;
+
+        for (Search aTrainList : trainList) {
+            tickets = new ArrayList<>();
+            ticket = new Ticket(aTrainList, dateOfJourney, numberOfPassengers);
+
+            System.out.println(ticketService.isTrainAvailable(ticket.getTrain(), dateOfJourney, numberOfPassengers));
+            if (ticketService.isTrainAvailable(ticket.getTrain(), dateOfJourney, numberOfPassengers)) {
+                tickets.add(ticket);
+                String totalDuration = LocalTime.parse(ticket.getTrain().getArrivalTime()).minusSeconds
+                        (LocalTime.parse(ticket.getTrain().getDepartureTime()).toSecondOfDay()).toString();
+
+                transaction = new Transaction(tickets, ticket.getPrice(), totalDuration);
+                transactionList.add(transaction);
+            }
+        }
+        return transactionList;
+    }
+
+    private List<Transaction> createTransactionForRoundTripNoStopTrains(List<Search> trainList, List<Search> returnTrainList,
+                                                                        String dateOfJourney, String returnDate, int numberOfPassengers){
+
+        List<Transaction> transactionList = new ArrayList<>();
+        Ticket ticket;
+        Ticket returnTicket;
+        List<Ticket> tickets;
+
+        Transaction transaction;
+
+        for(int i = 0; i<trainList.size(); i++){
+            tickets = new ArrayList<>();
+            ticket = new Ticket(trainList.get(i), dateOfJourney, numberOfPassengers);
+
+            if(returnTrainList.size() > i){
+                returnTicket = new Ticket(returnTrainList.get(i), returnDate, numberOfPassengers);
+                String totalDuration = LocalTime.parse(ticket.getTrain().getArrivalTime()).minusSeconds
+                        (LocalTime.parse(ticket.getTrain().getDepartureTime()).toSecondOfDay()).toString();
+
+                if(ticketService.isTrainAvailable(ticket.getTrain(), dateOfJourney, numberOfPassengers)){
+                    tickets.add(ticket);
+                }
+
+                if(ticketService.isTrainAvailable(returnTicket.getTrain(), returnDate, numberOfPassengers)){
+                    tickets.add(returnTicket);
+                }
+
+                if(tickets.size() == 2){
+                    long totalPrice = ticket.getPrice() + returnTicket.getPrice();
+                    transaction = new Transaction(tickets, totalPrice, totalDuration);
+                    transactionList.add(transaction);
+                }
+            }
+        }
+        return transactionList;
+    }
+
+    private List<Transaction> createTransactionForSingleTripOneStopTrains(Map<Integer, List<Search>> connectingTrainTimeMap,
+                                                                         int numberOfPassengers, String dateOfJourney){
+
+        Map<Integer, List<Ticket>> ticketMap = getTicketMapForOneStopTrains(connectingTrainTimeMap, numberOfPassengers, dateOfJourney);
+        List<Transaction> transactionList = new ArrayList<>();
+        Transaction transaction;
+
+        Set<Integer> keySet = ticketMap.keySet();
+        for(Integer integer : keySet){
+
+            LocalTime secondTrainArrivalTime = LocalTime.parse(ticketMap.get(integer).get(1).getTrain().getArrivalTime());
+            LocalTime firstTrainDepartureTime = LocalTime.parse(ticketMap.get(integer).get(0).getTrain().getDepartureTime());
+
+            long firstTrainPrice = ticketMap.get(integer).get(0).getPrice();
+            long secondTrainPrice = ticketMap.get(integer).get(1).getPrice();
+
+            String totalDuration = secondTrainArrivalTime.minusSeconds(firstTrainDepartureTime.toSecondOfDay()).toString();
+            long totalPrice = firstTrainPrice + secondTrainPrice;
+            transaction = new Transaction(ticketMap.get(integer),totalPrice, totalDuration);
+            transactionList.add(transaction);
+        }
+        return transactionList;
+    }
+
+
+    private Map<Integer, List<Ticket>> getTicketMapForOneStopTrains(Map<Integer, List<Search>> connectingTrainTimeMap,
+                                                            int numberOfPassengers, String dateOfJourney){
         Set<Integer> arrivalTimeTrainSet = connectingTrainTimeMap.keySet();
         ArrayList<Integer> arrivalTimeTrainList = new ArrayList<>(arrivalTimeTrainSet);
         Collections.sort(arrivalTimeTrainList);
 
         Ticket firstTrainTicket;
         Ticket secondTrainTicket;
-        Transaction transaction;
-        Set<Ticket> ticketSet;
-        Set<Transaction> transactionSet = new HashSet<>();
+        Map<Integer,List<Ticket>> ticketMap = new HashMap<>();
+        List<Ticket> tickets;
 
         for(int i=0;i<5;i++){
-            ticketSet = new HashSet<>();
+            tickets = new ArrayList<>();
             Search firstTrain = connectingTrainTimeMap.get(arrivalTimeTrainList.get(i)).get(0);
             Search secondTrain = connectingTrainTimeMap.get(arrivalTimeTrainList.get(i)).get(1);
 
-            System.out.println(firstTrain.getFromStation().getName() +"::"+firstTrain.getDepartureTime()+"::"+
-                    firstTrain.getToStation().getName() + "::" + firstTrain.getArrivalTime());
-            System.out.println(secondTrain.getFromStation().getName()+"::"+secondTrain.getDepartureTime()+"::"+
-                    secondTrain.getToStation().getName() + "::" + secondTrain.getArrivalTime());
-            System.out.println(":::::::::::::::::::");
+            firstTrainTicket = new Ticket(firstTrain, dateOfJourney, numberOfPassengers);
+            secondTrainTicket = new Ticket(secondTrain, dateOfJourney, numberOfPassengers);
 
-            firstTrainTicket = new Ticket(firstTrain);
-            secondTrainTicket = new Ticket(secondTrain);
+            if(ticketService.isTrainAvailable(firstTrainTicket.getTrain(), dateOfJourney, numberOfPassengers) &&
+                    ticketService.isTrainAvailable(secondTrainTicket.getTrain(), dateOfJourney, numberOfPassengers)){
 
-            ticketSet.add(firstTrainTicket);
-            ticketSet.add(secondTrainTicket);
-
-            String totalDuration = LocalTime.parse(secondTrain.getArrivalTime())
-                    .minusNanos(LocalTime.parse(firstTrain.getDepartureTime()).toNanoOfDay()).toString();
-            long totalPrice = firstTrain.getPrice() + secondTrain.getPrice();
-            transaction = new Transaction(ticketSet, totalPrice, totalDuration);
-            transactionSet.add(transaction);
+                tickets.add(firstTrainTicket);
+                tickets.add(secondTrainTicket);
+                ticketMap.put(i,tickets);
+            }
         }
-        return transactionSet;
+        return ticketMap;
     }
 
-    private Set<Search> filterTrainsByTicketType(Set<Search> trains, String ticketType){
-        Set<Search> filteredTrains = new HashSet<>();
+    private List<Search> filterTrainsByTicketType(List<Search> trains, String ticketType){
+        List<Search> filteredTrains = new ArrayList<>();
 
         if(ticketType.equalsIgnoreCase("any")){
             return trains;
@@ -202,7 +505,7 @@ public class SearchServiceImpl implements SearchService {
             }
         }else{
             for(Search search: trains){
-                if(!search.getTrain().isExpress()){
+                if(search.getTrain().isExpress()){
                     filteredTrains.add(search);
                 }
             }

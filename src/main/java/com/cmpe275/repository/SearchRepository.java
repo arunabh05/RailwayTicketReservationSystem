@@ -4,20 +4,22 @@ import com.cmpe275.domain.Search;
 import com.cmpe275.domain.Station;
 import org.springframework.data.repository.CrudRepository;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * @author arunabh.shrivastava
  */
 public interface SearchRepository extends CrudRepository<Search, Long> {
 
-    Set<Search> findTop5ByFromStationAndToStationAndDepartureTimeAfterOrderByArrivalTime
-            (Station fromStation, Station toStation, String departureTime);
-
-    Set<Search> findAllByFromStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
+    List<Search> findAllByFromStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
             (Station fromStation, String departureTimeAfter, String departureTimeBefore);
 
-    Set<Search> findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
+    List<Search> findTop5ByFromStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
+            (Station fromStation, String departureTimeAfter, String departureTimeBefore);
+
+    List<Search> findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
             (Station fromStation, Station toStation, String departureTimeAfter, String departureTimeBefore);
 
+    List<Search> findTop5ByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
+            (Station fromStation, Station toStation, String departureTimeAfter, String departureTimeBefore);
 }
