@@ -53,9 +53,10 @@ public class Ticket {
         this.duration = search.getDuration();
     }
 
-    public Ticket(Search search, Date dateOfJourney) {
+    public Ticket(Search search, Date dateOfJourney, int numberOfPassengers ) {
         this.train = search;
-        this.price = search.getPrice();
+        this.numberOfPassengers = numberOfPassengers;
+        this.price = search.getPrice()*numberOfPassengers;
         this.duration = search.getDuration();
         this.dateOfJourney = dateOfJourney;
     }
