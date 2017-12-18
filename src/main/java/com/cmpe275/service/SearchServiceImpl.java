@@ -40,9 +40,12 @@ public class SearchServiceImpl implements SearchService {
 
         Station fromStation = stationRepository.findOne(fromStationId);
         Station toStation = stationRepository.findOne(toStationId);
-        //printTransaction(transactionSet);
-        return filterTrainByConnections(ticketType,connections, fromStation, toStation,
+
+        List<Transaction> transactionSet = filterTrainByConnections(ticketType,connections, fromStation, toStation,
                 departureTime, numberOfPassengers, dateOfJourney, roundTrip, returnDate, returnTime);
+
+        //printTransaction(transactionSet);
+        return transactionSet;
     }
 
     private List<Transaction> filterTrainByConnections(String ticketType, String connections, Station fromStation,
@@ -68,22 +71,23 @@ public class SearchServiceImpl implements SearchService {
         List<List<Search>> trainsList = getTwoStopTrainsList(fromStation, toStation,ticketType, departureTime,
                 dateOfJourney, numberOfPassengers);
         List<Transaction> transactionList = new ArrayList<>();
+        transactionList.addAll(getTrainsWithNoStop(fromStation,toStation,ticketType,departureTime,numberOfPassengers
+                ,roundTrip,returnDate,returnTime,dateOfJourney));
+        transactionList.addAll(getTrainsWithOneStop(fromStation,toStation,ticketType,departureTime,numberOfPassengers
+                ,roundTrip,returnDate,returnTime,dateOfJourney));
+
         if(roundTrip){
             List<List<Search>> returnTrainList = getTwoStopTrainsList(toStation, fromStation,ticketType, returnTime,
                     returnDate, numberOfPassengers);
             transactionList.addAll(createTransactionForRoundTripTwoStopTrain(trainsList, returnTrainList, dateOfJourney,
                     numberOfPassengers, returnDate));
-            printTransaction(transactionList);
+            //printTransaction(transactionList);
 
         }else{
             transactionList.addAll(createTransactionForSingleTripTwoStopTrains(trainsList, numberOfPassengers, dateOfJourney));
-            printTransaction(transactionList);
+            //printTransaction(transactionList);
         }
 
-        transactionList.addAll(getTrainsWithNoStop(fromStation,toStation,ticketType,departureTime,numberOfPassengers
-                ,roundTrip,returnDate,returnTime,dateOfJourney));
-        transactionList.addAll(getTrainsWithOneStop(fromStation,toStation,ticketType,departureTime,numberOfPassengers
-                ,roundTrip,returnDate,returnTime,dateOfJourney));
 
         return transactionList;
     }
@@ -166,7 +170,7 @@ public class SearchServiceImpl implements SearchService {
                         thirdStopTrains,dateOfJourney, numberOfPassengers);
 
                 if(trainsList.size() < 5){
-                    printFastestRoute(fastestRoute);
+                    //printFastestRoute(fastestRoute);
                     trainsList.add(fastestRoute);
                 }else {
                     break;
@@ -290,7 +294,8 @@ public class SearchServiceImpl implements SearchService {
     }
 
 
-    private void printTransaction(List<Transaction> transactionList){
+    public void printTransaction(List<Transaction> transactionList){
+
         for(Transaction transaction: transactionList){
             System.out.println("List of Tickets ::");
             for(Ticket ticket: transaction.getTickets()){
@@ -403,7 +408,7 @@ public class SearchServiceImpl implements SearchService {
                 Date date = df.parse(dateOfJourney);
                 ticket = new Ticket(aTrainList, date, numberOfPassengers);
 
-                System.out.println(ticketService.isTrainAvailable(ticket.getTrain(), dateOfJourney, numberOfPassengers));
+              //  System.out.println(ticketService.isTrainAvailable(ticket.getTrain(), dateOfJourney, numberOfPassengers));
                 if (ticketService.isTrainAvailable(ticket.getTrain(), dateOfJourney, numberOfPassengers)) {
                     tickets.add(ticket);
                     String totalDuration = LocalTime.parse(ticket.getTrain().getArrivalTime()).minusSeconds

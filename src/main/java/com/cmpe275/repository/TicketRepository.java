@@ -14,4 +14,5 @@ import java.util.List;
 public interface TicketRepository extends CrudRepository<Ticket, Long> {
     List<Ticket> findAllByDateOfJourneyAndTrain(Date dateOfJourney, Search train);
 
+    List<Ticket> findAllByDateOfJourney(Date dateOfJourney);
 }

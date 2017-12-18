@@ -43,4 +43,11 @@ public class AdminController {
         }
     }
 
+
+    @RequestMapping(value = "/admin/cancelTrain")
+    public ResponseEntity<?> cancelTrain(@RequestParam(value = "trainId") Long trainId,
+                                         @RequestParam(value = "dateOfJourney") String date){
+        adminService.cancelTrain(trainId, date);
+        return new ResponseEntity<Object>("Train cancelled.",HttpStatus.OK);
+    }
 }

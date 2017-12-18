@@ -40,7 +40,7 @@ public class TicketService{
             } catch (ParseException e1) {
                 e1.getMessage();
             }
-            e.printStackTrace();
+            e.getMessage();
         }
         List<Ticket> ticketList = ticketRepository.findAllByDateOfJourneyAndTrain(date, train);
 
