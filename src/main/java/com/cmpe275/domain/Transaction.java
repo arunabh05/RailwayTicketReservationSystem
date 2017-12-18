@@ -29,6 +29,9 @@ public class Transaction {
     private String duration;
     private final long TRANSACTION_FEE = 1;
 
+    @ElementCollection
+    private List<String> listOfPassengers;
+
     public Transaction(){}
 
     public Transaction(List<Ticket> tickets, long price, String duration) {
@@ -42,6 +45,14 @@ public class Transaction {
         this.tickets = tickets;
         this.price = TRANSACTION_FEE+price;
         this.duration = duration;
+    }
+
+    public List<String> getListOfPassengers() {
+        return listOfPassengers;
+    }
+
+    public void setListOfPassengers(List<String> listOfPassengers) {
+        this.listOfPassengers = listOfPassengers;
     }
 
     public Long getId() {

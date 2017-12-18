@@ -7,6 +7,8 @@ import com.cmpe275.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 /**
  * @author arunabh.shrivastava
@@ -39,14 +41,10 @@ public class TransactionService {
         int count = transaction.getTickets().size();
         int iteration = 0;
 
-
-
         for(Ticket ticket: transaction.getTickets()){
-
             if(ticketService.isTrainAvailable(ticket.getTrain(), ticket.getDateOfJourney(), ticket.getNumberOfPassengers())){
                 iteration++;
             }
-
         }
 
         if(count == iteration) {
@@ -63,8 +61,7 @@ public class TransactionService {
             ticketRepository.save(transaction.getTickets());
             return transaction;
         }
-        else
-        {
+        else {
             return null;
         }
     }
@@ -73,7 +70,6 @@ public class TransactionService {
     public Transaction deleteTransaction(Long userId, Long transactionId) {
 
         Transaction transaction = transactionRepository.findOne(transactionId);
-
         Passenger passenger = passengerRepository.findOne(userId);
         passenger.removeTransaction(transaction);
 
@@ -82,8 +78,6 @@ public class TransactionService {
         }
 
         transactionRepository.delete(transaction.getId());
-
         return transaction;
     }
-
 }

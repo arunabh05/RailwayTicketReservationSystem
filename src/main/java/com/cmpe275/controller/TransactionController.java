@@ -7,6 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * @author arunabh.shrivastava
@@ -21,6 +24,8 @@ public class TransactionController {
     public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
     }
+
+
 
     @RequestMapping(value = "/api/transaction")
     public ResponseEntity<?> makeTransaction(@RequestParam(value = "userId") Long userId,
@@ -37,5 +42,24 @@ public class TransactionController {
         Transaction transaction2 = transactionService.deleteTransaction(userId, transactionId);
         return new ResponseEntity<>(transaction2, HttpStatus.OK);
     }
+
+
+    @RequestMapping(value = "/api/aaa")
+    public ResponseEntity<?> aaa() {
+
+
+        Transaction transaction = new Transaction();
+        List<Object> aa = new ArrayList<>();
+
+        List<String> array = new ArrayList<>();
+        array.add("A");
+        array.add("B");
+
+        aa.add(transaction);
+        aa.add(array);
+
+        return new ResponseEntity<>(aa, HttpStatus.OK);
+    }
+
 
 }
