@@ -28,7 +28,7 @@ public class BaseController {
     PassengerRepository passengerRepository;
 
 
-
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping(value = "/registerNewUser")
     public ResponseEntity<Object> registerUser(@RequestParam(value = "firstName") String firstName,
                                                @RequestParam(value = "lastName") String lastName,
@@ -44,7 +44,7 @@ public class BaseController {
             {
                 Passenger passenger = new Passenger(firstName,lastName,email,password);
                 passengerRepository.save(passenger);
-                return new ResponseEntity<>("Registered Successfully", HttpStatus.OK);
+                return new ResponseEntity<>(passenger, HttpStatus.OK);
             }
         }
 
@@ -53,6 +53,7 @@ public class BaseController {
 
 
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping(value = "/verifyLogin")
     public ResponseEntity<Object> verifyLogin(@RequestParam(value = "email") String email,
                                               @RequestParam(value = "password") String password,
@@ -74,6 +75,7 @@ public class BaseController {
         return new ResponseEntity<>("No such user found", HttpStatus.BAD_REQUEST);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping(value = "/logout")
     public ResponseEntity<Object> logout(HttpServletRequest request)
     {
@@ -87,6 +89,7 @@ public class BaseController {
     }
 
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/username", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<Object>   currentUserName(Principal principal, HttpServletRequest request) {
