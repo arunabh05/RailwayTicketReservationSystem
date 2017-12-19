@@ -13,7 +13,8 @@ import java.security.Principal;
 import java.util.Set;
 
 /**
- * Created by arunabh.shrivastava on 12/1/2017.
+ * @author arunabh.shrivastava
+ *
  */
 
 @Controller(value = "/auth")
@@ -33,8 +34,7 @@ public class BaseController {
     public ResponseEntity<Object> registerUser(@RequestParam(value = "firstName") String firstName,
                                                @RequestParam(value = "lastName") String lastName,
                                                @RequestParam(value = "email") String email,
-                                               @RequestParam(value = "password") String password)
-    {
+                                               @RequestParam(value = "password") String password) {
 
         if(firstName == null || lastName == null)
             return new ResponseEntity<>("Please input all fields", HttpStatus.BAD_REQUEST);
@@ -57,17 +57,14 @@ public class BaseController {
     @GetMapping(value = "/verifyLogin")
     public ResponseEntity<Object> verifyLogin(@RequestParam(value = "email") String email,
                                               @RequestParam(value = "password") String password,
-                                              HttpServletRequest request)
-    {
-        if(email == null || password == null)
-        {
+                                              HttpServletRequest request) {
+
+        if(email == null || password == null) {
             return new ResponseEntity<>("Enter both fields", HttpStatus.BAD_REQUEST);
         }
-        else
-        {
+        else {
             Set<Passenger> passengers = passengerRepository.findPassengerByEmailAndPassword(email,password);
-            if(passengers.size() != 0)
-            {
+            if(passengers.size() != 0) {
                 request.getSession().setAttribute("user",passengers);
                 return new ResponseEntity<>(passengers,HttpStatus.OK);
             }
@@ -77,15 +74,12 @@ public class BaseController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping(value = "/logout")
-    public ResponseEntity<Object> logout(HttpServletRequest request)
-    {
-        if(request.getSession().getAttribute("user") != null || request.getSession().getAttribute("user") != "")
-        {
+    public ResponseEntity<Object> logout(HttpServletRequest request) {
+        if(request.getSession().getAttribute("user") != null || request.getSession().getAttribute("user") != "") {
             request.getSession().setAttribute("user",null);
             return new ResponseEntity<>("Logout successful",HttpStatus.OK);
         }
-        else
-            return new ResponseEntity<>("Not logged in to log out",HttpStatus.BAD_REQUEST);
+        else return new ResponseEntity<>("Not logged in to log out",HttpStatus.BAD_REQUEST);
     }
 
 
@@ -96,5 +90,4 @@ public class BaseController {
         Set<Passenger> p = (Set<Passenger>) request.getSession().getAttribute("user");
         return new ResponseEntity<>(p,HttpStatus.OK);
     }
-
 }

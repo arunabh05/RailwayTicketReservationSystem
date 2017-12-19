@@ -1,13 +1,11 @@
 package com.cmpe275.domain;
 
-import java.text.ParseException;
 import java.util.Date;
+
+import com.cmpe275.service.Utilities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
-import java.text.DateFormat;
-
-import java.text.SimpleDateFormat;
 
 /**
  * @author arunabh.shrivastava
@@ -96,22 +94,10 @@ public class Ticket {
     }
 
     public String getDateOfJourney() {
-        DateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
-        return df.format(dateOfJourney);
+        return Utilities.dateToString(dateOfJourney);
     }
 
     public void setDateOfJourney(String dateOfJourney) {
-        DateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
-        DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");
-        try {
-            this.dateOfJourney = df.parse(dateOfJourney);
-        } catch (ParseException e) {
-            try {
-                this.dateOfJourney = df2.parse(dateOfJourney);
-            } catch (ParseException e1) {
-                e1.getMessage();
-            }
-            e.getMessage();
-        }
+        this.dateOfJourney = Utilities.stringToDate(dateOfJourney);
     }
 }

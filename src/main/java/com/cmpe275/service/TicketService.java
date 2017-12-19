@@ -6,9 +6,6 @@ import com.cmpe275.repository.TicketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -27,21 +24,7 @@ public class TicketService{
     }
 
     boolean isTrainAvailable(Search train, String dateOfJourney, int numberOfPassengers){
-        DateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
-        DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");
-
-        Date date = null;
-
-        try {
-            date = df.parse(dateOfJourney);
-        } catch (ParseException e) {
-            try {
-                date = df2.parse(dateOfJourney);
-            } catch (ParseException e1) {
-                e1.getMessage();
-            }
-            e.getMessage();
-        }
+        Date date = Utilities.stringToDate(dateOfJourney);
         List<Ticket> ticketList = ticketRepository.findAllByDateOfJourneyAndTrain(date, train);
 
         if(ticketList == null || ticketList.size() == 0){

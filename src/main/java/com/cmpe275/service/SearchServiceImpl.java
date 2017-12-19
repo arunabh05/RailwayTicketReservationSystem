@@ -6,11 +6,10 @@ import com.cmpe275.repository.StationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.util.*;
+
+import static com.cmpe275.constant.Constants.*;
 
 /**
  * @author arunabh.shrivastava
@@ -44,18 +43,18 @@ public class SearchServiceImpl implements SearchService {
         List<Transaction> transactionSet = filterTrainByConnections(ticketType,connections, fromStation, toStation,
                 departureTime, numberOfPassengers, dateOfJourney, roundTrip, returnDate, returnTime);
 
-        //printTransaction(transactionSet);
+        printTransaction(transactionSet);
         return transactionSet;
     }
 
     private List<Transaction> filterTrainByConnections(String ticketType, String connections, Station fromStation,
             Station toStation, String departureTime, int numberOfPassengers, String dateOfJourney, boolean roundTrip,
                                                       String returnDate, String returnTime){
-        if(connections.equalsIgnoreCase("none")){
+        if(connections.equalsIgnoreCase(CONNECTION_TYPE_NONE)){
             return getTrainsWithNoStop(fromStation, toStation, ticketType, departureTime,numberOfPassengers ,roundTrip,
                     returnDate, returnTime, dateOfJourney);
         }
-        else if(connections.equalsIgnoreCase("one")){
+        else if(connections.equalsIgnoreCase(CONNECTION_TYPE_ONE)){
             return getTrainsWithOneStop(fromStation, toStation,ticketType, departureTime, numberOfPassengers, roundTrip,
                     returnDate, returnTime, dateOfJourney);
         }else{
@@ -102,7 +101,6 @@ public class SearchServiceImpl implements SearchService {
             List<Ticket> tickets = new ArrayList<>();
 
             if(trainsList.size() > i && returnTrainList.size() > i){
-
                 tickets.addAll(getAllTicketsForRoundTripTwoStopTrains(trainsList.get(i), dateOfJourney, numberOfPassengers));
                 tickets.addAll(getAllTicketsForRoundTripTwoStopTrains(returnTrainList.get(i), returnDate, numberOfPassengers));
 
@@ -137,15 +135,9 @@ public class SearchServiceImpl implements SearchService {
         Ticket ticket;
         for(Search search: trainsList){
             if(ticketService.isTrainAvailable(search, dateOfJourney, numberOfPassengers)){
-                DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-                try {
-                    Date date = df.parse(dateOfJourney);
-                    ticket = new Ticket(search, date, numberOfPassengers);
-                    tickets.add(ticket);
-
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+                Date date = Utilities.stringToDate(dateOfJourney);
+                ticket = new Ticket(search, date, numberOfPassengers);
+                tickets.add(ticket);
             }
         }
         return tickets;
@@ -162,7 +154,8 @@ public class SearchServiceImpl implements SearchService {
         for(Search search : firstStopTrains){
             secondStopTrains = getTop5TrainsFromStations(search.getToStation(), search.getArrivalTime());
             for(Search search1: secondStopTrains){
-                String departureTimeBefore = LocalTime.parse(search1.getArrivalTime()).plusMinutes(120).toString();
+                String departureTimeBefore = LocalTime.parse(search1.getArrivalTime()).
+                        plusMinutes(DEPARTURE_TIME_TWO_HOUR_WAITING_TIME).toString();
                 thirdStopTrains = searchRepository.findTop5ByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
                         (search1.getToStation(), toStation, search1.getDepartureTime(), departureTimeBefore);
 
@@ -193,14 +186,9 @@ public class SearchServiceImpl implements SearchService {
             String duration;
             long price;
             for(Search search: searches){
-                try {
-                    DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-                    Date date = df.parse(dateOfJourney);
-                    ticket = new Ticket(search, date, numberOfPassengers);
-                    tickets.add(ticket);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+                Date date = Utilities.stringToDate(dateOfJourney);
+                ticket = new Ticket(search, date, numberOfPassengers);
+                tickets.add(ticket);
             }
 
             price=getAllTicketsPriceForRoundTripTwoStopTrains(tickets);
@@ -210,15 +198,6 @@ public class SearchServiceImpl implements SearchService {
             transactionList.add(transaction);
         }
         return transactionList;
-    }
-
-    private void printFastestRoute(List<Search> fastestRoute){
-        for(Search search: fastestRoute){
-            System.out.println(search.getFromStation().getName() + " to " + search.getToStation().getName());
-            System.out.println(search.getDepartureTime() + " - " + search.getArrivalTime());
-            System.out.println("");
-        }
-        System.out.println("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
     }
 
 
@@ -294,7 +273,7 @@ public class SearchServiceImpl implements SearchService {
     }
 
 
-    public void printTransaction(List<Transaction> transactionList){
+    private void printTransaction(List<Transaction> transactionList){
 
         for(Transaction transaction: transactionList){
             System.out.println("List of Tickets ::");
@@ -314,28 +293,34 @@ public class SearchServiceImpl implements SearchService {
 
         Map<Search, List<Search>> connectingTrainsMap = new HashMap<>();
         List<Search> connectingTrains;
+
         for(Search search : allTrainFromSource){
             connectingTrains = new ArrayList<>();
-            String departureTimeBefore = LocalTime.parse(search.getArrivalTime()).plusMinutes(120).toString();
-            String secondTrainDepartureTime = LocalTime.parse(search.getArrivalTime()).plusMinutes(5).toString();
+
+            String departureTimeBefore = LocalTime.parse(search.getArrivalTime())
+                    .plusMinutes(DEPARTURE_TIME_TWO_HOUR_WAITING_TIME).toString();
+            String secondTrainDepartureTime = LocalTime.parse(search.getArrivalTime())
+                    .plusMinutes(DEPARTURE_TIME_MIN_WAITING_TIME).toString();
+
             connectingTrains.addAll(searchRepository.findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
                     (search.getToStation(),toStation, secondTrainDepartureTime , departureTimeBefore));
             connectingTrainsMap.put(search, connectingTrains);
+
         }
         return getFastestConnectingTrains(connectingTrainsMap);
     }
 
     private List<Search> getAllTrainsFromStations(Station fromStation, String departureTime){
-        departureTime = LocalTime.parse(departureTime).plusMinutes(5).toString();
-        String twoHoursFromDepartureTime = LocalTime.parse(departureTime).plusMinutes(120).toString();
+        departureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_MIN_WAITING_TIME).toString();
+        String twoHoursFromDepartureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_TWO_HOUR_WAITING_TIME).toString();
         return searchRepository.findAllByFromStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
                 (fromStation, departureTime, twoHoursFromDepartureTime);
     }
 
 
     private List<Search> getTop5TrainsFromStations(Station fromStation, String departureTime){
-        departureTime = LocalTime.parse(departureTime).plusMinutes(5).toString();
-        String twoHoursFromDepartureTime = LocalTime.parse(departureTime).plusMinutes(120).toString();
+        departureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_MIN_WAITING_TIME).toString();
+        String twoHoursFromDepartureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_TWO_HOUR_WAITING_TIME).toString();
         return searchRepository.findTop5ByFromStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
                 (fromStation, departureTime, twoHoursFromDepartureTime);
     }
@@ -372,8 +357,8 @@ public class SearchServiceImpl implements SearchService {
                                                  String departureTime, int numberOfPassengers, boolean roundTrip,
                                                  String returnDate, String returnTime, String dateOfJourney){
 
-        departureTime = LocalTime.parse(departureTime).plusMinutes(5).toString();
-        String departureTimeBefore = LocalTime.parse(departureTime).plusMinutes(300).toString();
+        departureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_MIN_WAITING_TIME).toString();
+        String departureTimeBefore = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_FIVE_HOUR_WAITING_TIME).toString();
         List<Search> trainSet = searchRepository.findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
                 (fromStation, toStation, departureTime, departureTimeBefore);
         trainSet = filterTrainsByTicketType(trainSet, ticketType);
@@ -382,8 +367,8 @@ public class SearchServiceImpl implements SearchService {
         List<Search> returnTrainList;
 
         if(roundTrip){
-            returnTime = LocalTime.parse(returnTime).plusMinutes(5).toString();
-            String returnTimeBefore = LocalTime.parse(returnTime).plusMinutes(300).toString();
+            returnTime = LocalTime.parse(returnTime).plusMinutes(DEPARTURE_TIME_MIN_WAITING_TIME).toString();
+            String returnTimeBefore = LocalTime.parse(returnTime).plusMinutes(DEPARTURE_TIME_FIVE_HOUR_WAITING_TIME).toString();
             returnTrainList = searchRepository.findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
                     (toStation, fromStation, returnTime, returnTimeBefore);
             returnTrainList = filterTrainsByTicketType(returnTrainList, ticketType);
@@ -403,22 +388,17 @@ public class SearchServiceImpl implements SearchService {
 
         for (Search aTrainList : trainList) {
             tickets = new ArrayList<>();
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-            try {
-                Date date = df.parse(dateOfJourney);
-                ticket = new Ticket(aTrainList, date, numberOfPassengers);
+            Date date = Utilities.stringToDate(dateOfJourney);
+            ticket = new Ticket(aTrainList, date, numberOfPassengers);
 
-              //  System.out.println(ticketService.isTrainAvailable(ticket.getTrain(), dateOfJourney, numberOfPassengers));
-                if (ticketService.isTrainAvailable(ticket.getTrain(), dateOfJourney, numberOfPassengers)) {
-                    tickets.add(ticket);
-                    String totalDuration = LocalTime.parse(ticket.getTrain().getArrivalTime()).minusSeconds
-                            (LocalTime.parse(ticket.getTrain().getDepartureTime()).toSecondOfDay()).toString();
+          //  System.out.println(ticketService.isTrainAvailable(ticket.getTrain(), dateOfJourney, numberOfPassengers));
+            if (ticketService.isTrainAvailable(ticket.getTrain(), dateOfJourney, numberOfPassengers)) {
+                tickets.add(ticket);
+                String totalDuration = LocalTime.parse(ticket.getTrain().getArrivalTime()).minusSeconds
+                        (LocalTime.parse(ticket.getTrain().getDepartureTime()).toSecondOfDay()).toString();
 
-                    transaction = new Transaction(tickets, ticket.getPrice(), totalDuration);
-                    transactionList.add(transaction);
-                }
-            } catch (ParseException e) {
-                e.printStackTrace();
+                transaction = new Transaction(tickets, ticket.getPrice(), totalDuration);
+                transactionList.add(transaction);
             }
         }
         return transactionList;
@@ -437,37 +417,26 @@ public class SearchServiceImpl implements SearchService {
         for(int i = 0; i<trainList.size(); i++){
             tickets = new ArrayList<>();
 
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-            Date date = null;
-            try {
-                date = df.parse(dateOfJourney);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            Date date = Utilities.stringToDate(dateOfJourney);
             ticket = new Ticket(trainList.get(i), date, numberOfPassengers);
                 if(returnTrainList.size() > i){
-                    try {
-                        Date returnTripDate = df.parse(returnDate);
-                        returnTicket = new Ticket(returnTrainList.get(i), returnTripDate, numberOfPassengers);
-                        String totalDuration = LocalTime.parse(ticket.getTrain().getArrivalTime()).minusSeconds
-                                (LocalTime.parse(ticket.getTrain().getDepartureTime()).toSecondOfDay()).toString();
+                    Date returnTripDate = Utilities.stringToDate(returnDate);
+                    returnTicket = new Ticket(returnTrainList.get(i), returnTripDate, numberOfPassengers);
+                    String totalDuration = LocalTime.parse(ticket.getTrain().getArrivalTime()).minusSeconds
+                            (LocalTime.parse(ticket.getTrain().getDepartureTime()).toSecondOfDay()).toString();
 
-                        if(ticketService.isTrainAvailable(ticket.getTrain(), dateOfJourney, numberOfPassengers)){
-                            tickets.add(ticket);
-                        }
+                    if(ticketService.isTrainAvailable(ticket.getTrain(), dateOfJourney, numberOfPassengers)){
+                        tickets.add(ticket);
+                    }
 
-                        if(ticketService.isTrainAvailable(returnTicket.getTrain(), returnDate, numberOfPassengers)){
-                            tickets.add(returnTicket);
-                        }
+                    if(ticketService.isTrainAvailable(returnTicket.getTrain(), returnDate, numberOfPassengers)){
+                        tickets.add(returnTicket);
+                    }
 
-                        if(tickets.size() == 2){
-                            long totalPrice = ticket.getPrice() + returnTicket.getPrice();
-                            transaction = new Transaction(tickets, totalPrice, totalDuration);
-                            transactionList.add(transaction);
-                        }
-
-                    } catch (ParseException e) {
-                        e.printStackTrace();
+                    if(tickets.size() == 2){
+                        long totalPrice = ticket.getPrice() + returnTicket.getPrice();
+                        transaction = new Transaction(tickets, totalPrice, totalDuration);
+                        transactionList.add(transaction);
                     }
             }
         }
@@ -515,29 +484,21 @@ public class SearchServiceImpl implements SearchService {
             Search firstTrain = connectingTrainTimeMap.get(arrivalTimeTrainList.get(i)).get(0);
             Search secondTrain = connectingTrainTimeMap.get(arrivalTimeTrainList.get(i)).get(1);
 
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-
             Date firstTrainDate;
             Date secondTrainDate;
-            try {
-                secondTrainDate = df.parse(dateOfJourney);
-                firstTrainDate = df.parse(dateOfJourney);
+            secondTrainDate = Utilities.stringToDate(dateOfJourney);
+            firstTrainDate = Utilities.stringToDate(dateOfJourney);
 
-                firstTrainTicket = new Ticket(firstTrain, firstTrainDate, numberOfPassengers);
-                secondTrainTicket = new Ticket(secondTrain, secondTrainDate, numberOfPassengers);
+            firstTrainTicket = new Ticket(firstTrain, firstTrainDate, numberOfPassengers);
+            secondTrainTicket = new Ticket(secondTrain, secondTrainDate, numberOfPassengers);
 
-                if(ticketService.isTrainAvailable(firstTrainTicket.getTrain(), dateOfJourney, numberOfPassengers) &&
-                        ticketService.isTrainAvailable(secondTrainTicket.getTrain(), dateOfJourney, numberOfPassengers)){
+            if(ticketService.isTrainAvailable(firstTrainTicket.getTrain(), dateOfJourney, numberOfPassengers) &&
+                    ticketService.isTrainAvailable(secondTrainTicket.getTrain(), dateOfJourney, numberOfPassengers)){
 
-                    tickets.add(firstTrainTicket);
-                    tickets.add(secondTrainTicket);
-                    ticketMap.put(i,tickets);
-                }
-
-            } catch (ParseException e) {
-                e.printStackTrace();
+                tickets.add(firstTrainTicket);
+                tickets.add(secondTrainTicket);
+                ticketMap.put(i,tickets);
             }
-
         }
         return ticketMap;
     }
@@ -545,10 +506,10 @@ public class SearchServiceImpl implements SearchService {
     private List<Search> filterTrainsByTicketType(List<Search> trains, String ticketType){
         List<Search> filteredTrains = new ArrayList<>();
 
-        if(ticketType.equalsIgnoreCase("any")){
+        if(ticketType.equalsIgnoreCase(PARAMETER_VALUE_ANY)){
             return trains;
         }
-        else if(ticketType.equalsIgnoreCase("express")){
+        else if(ticketType.equalsIgnoreCase(TRAIN_TYPE_EXPRESS)){
             for(Search search: trains){
                 if(!search.getTrain().isExpress()){
                     filteredTrains.add(search);

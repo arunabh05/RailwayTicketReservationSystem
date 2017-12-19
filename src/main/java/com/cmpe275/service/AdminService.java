@@ -8,12 +8,12 @@ import com.cmpe275.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+
+import static com.cmpe275.constant.Constants.*;
 
 /**
  * Created by vedant on 12/17/17.
@@ -50,8 +50,7 @@ public class AdminService {
 
 
     public boolean updateTrainCapacity(Long capacity) {
-
-        if(capacity >= 5 && capacity <=1000) {
+        if(capacity >= 5 && capacity <=trainRepository.findOne(1L).getCapacity()) {
             for(Train train: trainRepository.findAll()) {
                 train.setCapacity(capacity);
                 trainRepository.save(train);
@@ -64,36 +63,27 @@ public class AdminService {
 
     public void cancelTrain(Long trainId, String dateOfJourney){
 
-        Date date = null;
-        DateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
-        DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");
-        try {
-            date = df.parse(dateOfJourney);
-        } catch (ParseException e) {
-            try {
-                date = df2.parse(dateOfJourney);
-            } catch (ParseException e1) {
-                e1.getMessage();
-            }
+        Date date = Utilities.stringToDate(dateOfJourney);
+        for(Ticket ticket: ticketRepository.findAllByDateOfJourney(date)){
 
-            for(Ticket ticket: ticketRepository.findAllByDateOfJourney(date)){
+            Station fromStation;
+            Station toStation;
+            String departureTime;
+            int numberOfPassenger;
+            List<String> passengers = new ArrayList<>();
+            Passenger passenger = ticket.getTransaction().getPassenger();
 
-                Station fromStation;
-                Station toStation;
-                String departureTime;
-                int numberOfPassenger;
-                List<String> passengers = new ArrayList<>();
-                Passenger passenger = ticket.getTransaction().getPassenger();
-                if(ticket.getTrain().getTrain().getId().equals(trainId)){
-                    fromStation = ticket.getTrain().getFromStation();
-                    toStation = ticket.getTrain().getToStation();
-                    departureTime = ticket.getTrain().getDepartureTime();
-                    numberOfPassenger = ticket.getNumberOfPassengers();
-                    passengers.addAll(ticket.getTransaction().getListOfPassengers());
-                    ticketRepository.delete(ticket.getId());
-                    rebookTicketInAnotherTrain(passenger,fromStation, toStation, departureTime, numberOfPassenger, passengers,
-                            dateOfJourney);
-                }
+            if(ticket.getTrain().getTrain().getId().equals(trainId)){
+                fromStation = ticket.getTrain().getFromStation();
+                toStation = ticket.getTrain().getToStation();
+                departureTime = ticket.getTrain().getDepartureTime();
+                numberOfPassenger = ticket.getNumberOfPassengers();
+
+                passengers.addAll(ticket.getTransaction().getListOfPassengers());
+
+                ticketRepository.delete(ticket.getId());
+                rebookTicketInAnotherTrain(passenger,fromStation, toStation, departureTime, numberOfPassenger, passengers,
+                        dateOfJourney);
             }
         }
     }
@@ -101,12 +91,9 @@ public class AdminService {
     private void rebookTicketInAnotherTrain(Passenger passenger, Station fromStation, Station toStation, String departureTime,
                                             int numberOfPassengers, List<String> passengers, String dateOfJourney){
 
-        String ticketType = "any";
-        String connections = "any";
-        boolean roundTrip = false;
-
         List<Transaction> transactionList = searchService.getAvailableTrains(numberOfPassengers,departureTime
-                ,fromStation.getId(),toStation.getId(),ticketType, connections,roundTrip, dateOfJourney, departureTime,
+                ,fromStation.getId(),toStation.getId(),PARAMETER_VALUE_ANY, PARAMETER_VALUE_ANY, false,
+                PARAMETER_VALUE_EMPTY, PARAMETER_VALUE_EMPTY,
                 dateOfJourney);
 
         if(transactionList.size()>0){
@@ -119,11 +106,23 @@ public class AdminService {
     }
 
     private void printTransaction(Transaction transaction){
-            System.out.println("List of Tickets ::");
-            for(Ticket ticket: transaction.getTickets()){
-                System.out.println(ticket.getTrain().getFromStation().getName() + "  to  " +ticket.getTrain().getToStation().getName());
-                System.out.println(ticket.getTrain().getDepartureTime() + "  to  " +ticket.getTrain().getArrivalTime());
-            }
-            System.out.println(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+        System.out.println("List of Tickets ::");
+        for(Ticket ticket: transaction.getTickets()){
+            System.out.println(ticket.getTrain().getFromStation().getName() + "  to  " +ticket.getTrain().getToStation().getName());
+            System.out.println(ticket.getTrain().getDepartureTime() + "  to  " +ticket.getTrain().getArrivalTime());
         }
+        System.out.println(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+    }
+
+    public Map<String, Integer> calculateTrainReservationRate(String date){
+        return null;
+    }
+
+    public Map<String, Integer> calculateSystemReservationRate(String date){
+        return null;
+    }
+
+    public Map<String, Integer> calculateTicketReservationRate(String date){
+        return null;
+    }
 }
