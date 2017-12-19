@@ -1,14 +1,16 @@
-
 /**
  * Module dependencies.
  */
 
-var express = require('express')
-  , routes = require('./routes')
-  , user = require('./routes/user')
-  , http = require('http')
-  , path = require('path');
+var express = require('express'),
+    routes = require('./routes'),
+    user = require('./routes/user'),
+    http = require('http'),
+    path = require('path');
 
+var passport = require('passport');
+var Strategy = require('passport-facebook').Strategy;
+var GoogleStrategy = require('passport-google-oauth20').Strategy;
 var app = express();
 
 // all environments
@@ -17,19 +19,112 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(express.favicon());
 app.use(express.logger('dev'));
-app.use(express.bodyParser());
+app.use(require('body-parser').urlencoded({
+    extended: true
+}));
 app.use(express.methodOverride());
-app.use(app.router);
-app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(require('express-session')({
+    secret: 'keyboard cat',
+    resave: true,
+    saveUninitialized: true
+}));
 // development only
 if ('development' == app.get('env')) {
-  app.use(express.errorHandler());
+    app.use(express.errorHandler());
 }
+
+passport.use(new Strategy({
+        clientID: "",
+        clientSecret: "",
+        callbackURL: 'http://localhost:3000/login/facebook/return',
+        profileFields: ['id', 'emails', 'name']
+    },
+    function (accessToken, refreshToken, profile, cb) {
+        console.log("Testing facebook", profile.emails[0].value);
+        console.log("testing google", profile.name.familyName);
+        console.log("testing google", profile.name.givenName);
+
+        var options = {
+            host: "10.0.0.73",
+            port: 8080,
+            path: "/registerNewUser?firstName=" + profile.name.givenName + "&lastName=" + profile.name.familyName + "&email=" + profile.emails[0].value + "&password=default",
+            method: 'POST'
+        };
+        http.request(options, function (res) {
+            console.log('STATUS: ' + res.statusCode);
+        }).end();
+
+        return cb(null, profile);
+    }));
+
+passport.use(new GoogleStrategy({
+        clientID: "",
+        clientSecret: "",
+        callbackURL: "http://localhost:3000/auth/google/callback"
+    },
+    function (accessToken, refreshToken, profile, cb) {
+        console.log("testing google", profile.name.familyName);
+        console.log("testing google", profile.name.givenName);
+        var options = {
+            host: "10.0.0.73",
+            port: 8080,
+            path: "/registerNewUser?firstName=" + profile.name.givenName + "&lastName=" + profile.name.familyName + "&email=" + profile.emails[0].value + "&password=default",
+            method: 'POST'
+        };
+        http.request(options, function (res) {
+            console.log('STATUS: ' + res.statusCode);
+        }).end();
+
+        return cb(null, profile);
+    }
+));
+
+passport.serializeUser(function (user, cb) {
+    cb(null, user);
+});
+
+passport.deserializeUser(function (obj, cb) {
+    cb(null, obj);
+});
+
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(app.router);
+
+app.get('/login/facebook', passport.authenticate('facebook', {
+    scope: ['email']
+}));
+app.get('/login/facebook/return',
+    passport.authenticate('facebook', {
+        failureRedirect: '/'
+    }),
+    function (req, res) {
+        res.redirect('/home');
+    });
+
+app.get('/auth/google',
+    passport.authenticate('google', {
+        scope: ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email']
+    }));
+
+app.get('/auth/google/callback',
+    passport.authenticate('google', {
+        failureRedirect: '/'
+    }),
+    function (req, res) {
+        // Successful authentication, redirect home.
+        res.redirect('/home');
+    });
 
 app.get('/', routes.index);
 app.get('/users', user.list);
+app.get('/home',
+    function (req, res) {
+        res.render('home');
+    });
 
-http.createServer(app).listen(app.get('port'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
+http.createServer(app).listen(app.get('port'), function () {
+    console.log('Express server listening on port ' + app.get('port'));
 });

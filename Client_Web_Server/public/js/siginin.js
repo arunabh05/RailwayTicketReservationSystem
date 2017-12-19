@@ -1,7 +1,9 @@
 var app = angular.module('login',[]);
 
 app.controller("login_controller",function($scope,$http,$window){
-	$scope.invalid=true;
+	$scope.invalidlogin=true;
+	$scope.validregistration=true;
+	$scope.invalidregistration=true;
 	console.log("Reporting from login controller");
     $scope.signin=function(){
         var username=$scope.username;
@@ -9,7 +11,7 @@ app.controller("login_controller",function($scope,$http,$window){
         console.log("Reporting from sign in function");
 
         //verifyLogin?email=j.n@gmail.com&password=abc
-        var URL = "http://10.0.0.68:8080/verifyLogin?email="+username+"&password="+password;
+        var URL = "http://10.0.0.73:8080/verifyLogin?email="+username+"&password="+password;
 
         console.log(URL);
 
@@ -18,10 +20,10 @@ app.controller("login_controller",function($scope,$http,$window){
             method:"GET"
 
         }).success(function(data){
-            console.log("Successful login");
-            $window.location.href="/home.html"
-        })
-    }
+            console.log("Successful login",data);
+            $window.location.href="/home";
+        });
+    };
     
     $scope.register=function(){
         var firstname=$scope.firstname;
@@ -30,7 +32,7 @@ app.controller("login_controller",function($scope,$http,$window){
         var password=$scope.password;
         console.log("Reporting from register function");
 
-        var URL = "http://10.0.0.68:8080/registerNewUser?firstName="+firstname+"&lastName="+lastname+"&email="+email+"&password="+password;
+        var URL = "http://10.0.0.73:8080/registerNewUser?firstName="+firstname+"&lastName="+lastname+"&email="+email+"&password="+password;
 
         console.log(URL);
 

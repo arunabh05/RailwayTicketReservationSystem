@@ -6,7 +6,11 @@
     "start": "node app.js"
   },
   "dependencies": {
+    "body-parser": "^1.18.2",
+    "ejs": "*",
     "express": "3.2.6",
-    "ejs": "*"
+    "passport": "^0.4.0",
+    "passport-facebook": "^2.1.1",
+    "passport-google-oauth20": "^1.0.0"
   }
 }
