@@ -171,7 +171,7 @@
                         </tbody>
                     </table>
                 </ul>
-                <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#myModal">Book</button>
+                <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#myModal" ng-click="book(x)">Book</button>
             </div>
         </div>
 
@@ -190,17 +190,24 @@
             <div class="modal-body">
 
                 <div class="form-group" ng-repeat="x in numberOfPassengers">
-                    <label class="control-label col-md-12" for="pwd">Name of passenger {{x+1}}</label>
+                    <label class="control-label col-md-12" for="pwd">Name of passenger {{x.number+1}}</label>
                     <div class="col-sm-10">
-                        <input type=text>
+                        <input type=text ng-model="name[x+1]">
                     </div>
                 </div>
-                <br><br>
+                <br>
+                <br>
 
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">Confirm booking</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" ng-click="confirmBooking()">Confirm booking</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="searchRoute()">Close</button>
+
+                <div class="col-md-12" style="margin: 10px;">
+                    <div class="alert alert-success" ng-hide="bookingsuccessful">
+                        <strong>Booking successful</strong>
+                    </div>
+                </div>
             </div>
         </div>
 
