@@ -124,6 +124,14 @@ app.get('/home',
     function (req, res) {
         res.render('home');
     });
+app.get('/admin',
+    function (req, res) {
+        res.render('admin');
+    });
+app.get('/admin_home',
+    function (req, res) {
+        res.render('admin_home');
+    });
 
 http.createServer(app).listen(app.get('port'), function () {
     console.log('Express server listening on port ' + app.get('port'));
