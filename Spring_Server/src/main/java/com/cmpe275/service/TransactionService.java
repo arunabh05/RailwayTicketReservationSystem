@@ -7,6 +7,9 @@ import com.cmpe275.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author arunabh.shrivastava
  */
@@ -22,15 +25,18 @@ public class TransactionService {
     TransactionRepository transactionRepository;
     private final
     TicketRepository ticketRepository;
+    private final
+    NotificationService notificationService;
 
 
     @Autowired
     public TransactionService(PassengerRepository passengerRepository,
-                              TicketService ticketService, TransactionRepository transactionRepository, TicketRepository ticketRepository) {
+                              TicketService ticketService, TransactionRepository transactionRepository, TicketRepository ticketRepository, NotificationService notificationService) {
         this.passengerRepository = passengerRepository;
         this.ticketService = ticketService;
         this.transactionRepository = transactionRepository;
         this.ticketRepository = ticketRepository;
+        this.notificationService = notificationService;
     }
 
 
@@ -56,11 +62,25 @@ public class TransactionService {
 
             passengerRepository.save(passenger);
             ticketRepository.save(transaction.getTickets());
+            notificationService.sendBookingNotification(passenger, transaction);
             return transaction;
         }
         else {
             return null;
         }
+    }
+
+
+    public List<Transaction> getTransactions(Long userId) {
+        List<Transaction> transactions = new ArrayList<>();
+
+        for(Transaction trans: transactionRepository.findAll()) {
+
+            if(trans.getPassenger().getId() == userId) {
+                transactions.add(trans);
+            }
+        }
+        return transactions;
     }
 
 
