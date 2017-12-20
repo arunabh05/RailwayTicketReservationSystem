@@ -45,7 +45,6 @@ passport.use(new Strategy({
         console.log("Testing facebook", profile.emails[0].value);
         console.log("testing google", profile.name.familyName);
         console.log("testing google", profile.name.givenName);
-
         var options = {
             host: "10.0.0.73",
             port: 8080,

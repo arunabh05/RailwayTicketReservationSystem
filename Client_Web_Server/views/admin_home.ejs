@@ -20,7 +20,7 @@
 
 </head>
 
-<body ng-app="admin">
+<body ng-app="admin" ng-controller="reset_controller">
 <div id="wrapper" data-spy="scroll" data-target="#spy" class="">
     <!-- Sidebar -->
     <div id="sidebar-wrapper" class="">
@@ -37,6 +37,11 @@
                         <span>Cancel Train</span>
                     </a>
 
+                </li>
+                <br>
+                <li> <button class="w3-border-bottom btn btn-danger" type="button" ng-click="logout()">
+                    <span>Log out</span>
+                    </button>   
                 </li>
             </ul>
         </nav>

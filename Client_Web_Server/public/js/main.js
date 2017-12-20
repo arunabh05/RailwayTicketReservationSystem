@@ -18,7 +18,7 @@ app.config(['$routeProvider', '$locationProvider',
     }]);
 
 app.controller("search_controller", function ($scope, $http, $filter, $window) {
-    var base_url='http://10.0.0.68:8080';
+    var base_url='http://10.0.0.73:8080';
     console.log("Reporting from Search controller");
     $scope.bookingsuccessful = true;
     console.log($scope.numberOfPassengers);
@@ -106,12 +106,18 @@ app.controller("search_controller", function ($scope, $http, $filter, $window) {
         console.log("Rerouting to search page");
         $window.location.reload();
     }
+    
+        $scope.logout = function(){
+        console.log("Reporting from log out function");
+        $window.localStorage.removeItem("user");
+        $window.location.href="/";
+    }
 });
 
 app.controller("bookings_controller", function ($scope, $http, $window) {
     console.log("Reporting from bookings controller");
 
-    var base_url='http://10.0.0.68:8080';
+    var base_url='http://10.0.0.73:8080';
 
     var URL =  base_url+"/api/getTransaction?userId="+$window.localStorage.getItem("user");
 
@@ -142,6 +148,12 @@ app.controller("bookings_controller", function ($scope, $http, $window) {
             console.log("Booking unsuccessful");
         });
 
+    }
+    
+    $scope.logout = function(){
+        console.log("Reporting from log out function");
+        $window.localStorage.removeItem("user");
+        $window.location.href="/";
     }
 
 });

@@ -23,7 +23,7 @@
     
 </head>
 
-<body ng-app="main">
+<body ng-app="main" ng-controller="search_controller">
  <div id="wrapper" data-spy="scroll" data-target="#spy" class="">
     <!-- Sidebar -->
     <div id="sidebar-wrapper" class="">
@@ -40,6 +40,11 @@
                             <span>Bookings</span>
                         </a>
 
+                </li>
+                <br>
+                <li> <button class="w3-border-bottom btn btn-danger" type="button" ng-click="logout()">
+                    <span>Log out</span>
+                    </button>   
                 </li>
             </ul>
         </nav>

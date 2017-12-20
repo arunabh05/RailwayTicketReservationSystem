@@ -21,7 +21,7 @@ app.config(['$routeProvider', '$locationProvider',
 
 app.controller("admin_controller", function ($scope, $http, $window) {
     console.log("Reporting from admin controller");
-    var base_url="http://10.0.0.68:8080";
+    var base_url="http://10.0.0.73:8080";
     $scope.signin=function(){
         console.log("Reporting from admin sign in ");
         console.log("Username=",$scope.username);
@@ -43,10 +43,11 @@ app.controller("admin_controller", function ($scope, $http, $window) {
     }
 });
 
-app.controller("reset_controller", function ($scope, $http) {
+app.controller("reset_controller", function ($scope, $http, $window) {
     $scope.update_capacity_success=true;
+    $scope.reset=true;
     console.log("Reporting from reset controller");
-    var base_url="http://10.0.0.68:8080";
+    var base_url="http://10.0.0.73:8080";
 
     $scope.reset=function(){
         console.log("Reporting from reset function");
@@ -56,7 +57,7 @@ app.controller("reset_controller", function ($scope, $http) {
             method: "POST"
         }).success(function (data) {
             console.log("Reset Successful", data);
-
+            $scope.reset=false;
         }).error(function (data) {
             console.log("error");
         });
@@ -76,12 +77,18 @@ app.controller("reset_controller", function ($scope, $http) {
         });
 
     };
+    
+    $scope.logout = function(){
+        console.log("Reporting from log out function");
+        $window.localStorage.removeItem("user");
+        $window.location.href="/";
+    }
 });
 
-app.controller("cancel_train_controller", function ($scope, $http) {
+app.controller("cancel_train_controller", function ($scope, $http, $window) {
     console.log("Reporting from cancel_train controller");
     $scope.update_capacity_success=true;
-    var base_url="http://10.0.0.68:8080";
+    var base_url="http://10.0.0.73:8080";
     $scope.cancel_train=function(){
         var date = $scope.date.toString();
         var return_month = ($scope.date.getMonth() + 1);
@@ -102,6 +109,13 @@ app.controller("cancel_train_controller", function ($scope, $http) {
 
 
     };
+    
+    $scope.logout = function(){
+        console.log("Reporting from log out function");
+        $window.localStorage.removeItem("user");
+        $window.location.href="/";
+    }
+    
 });
 
 app.controller("system_reports_controller", function ($scope, $http) {
