@@ -34,10 +34,10 @@ public class BaseController {
     @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> adminLogin(@RequestParam(value = "username") String username,
                                         @RequestParam(value = "password") String password) {
-        if(username == "admin" && password == "admin") {
-            return new ResponseEntity<Object>("Admin Login Successful", HttpStatus.OK);
+        if(username.equals("admin")&&password.equals("admin")) {
+            return new ResponseEntity<>("Admin Login Successful", HttpStatus.OK);
         }
-        return new ResponseEntity<Object>("Admin Login Failed", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("Admin Login Failed", HttpStatus.BAD_REQUEST);
     }
 
 
@@ -56,7 +56,7 @@ public class BaseController {
             {
                 Passenger passenger = new Passenger(firstName,lastName,email,password);
                 passengerRepository.save(passenger);
-                return new ResponseEntity<>(passenger, HttpStatus.OK);
+                    return new ResponseEntity<>(passenger, HttpStatus.OK);
             }
         }
 
