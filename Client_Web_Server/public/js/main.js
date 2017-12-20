@@ -18,7 +18,7 @@ app.config(['$routeProvider', '$locationProvider',
     }]);
 
 app.controller("search_controller", function ($scope, $http, $filter, $window) {
-    var base_url='http://10.0.0.73:8080';
+    var base_url='http://10.0.0.68:8080';
     console.log("Reporting from Search controller");
     $scope.bookingsuccessful = true;
     console.log($scope.numberOfPassengers);
@@ -108,6 +108,17 @@ app.controller("search_controller", function ($scope, $http, $filter, $window) {
 
 app.controller("bookings_controller", function ($scope, $http) {
     console.log("Reporting from bookings controller");
+
+    $http({
+        url: base_url+"/api/getTransaction?userId=1",
+        method: "POST"
+    }).success(function (data) {
+        console.log(data);
+        $scope.myBookings = null;
+        $scope.myBookings = data;
+        console.log("Successful login");
+    })
+
 });
 
 app.controller("admin_controller", function ($scope, $http) {

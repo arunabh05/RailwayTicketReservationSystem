@@ -75,8 +75,8 @@ public class BaseController {
             return new ResponseEntity<>("Enter both fields", HttpStatus.BAD_REQUEST);
         }
         else {
-            Set<Passenger> passengers = passengerRepository.findPassengerByEmailAndPassword(email,password);
-            if(passengers.size() != 0) {
+            Passenger passengers = passengerRepository.findPassengerByEmailAndPassword(email,password);
+            if(passengers != null) {
                 request.getSession().setAttribute("user",passengers);
                 return new ResponseEntity<>(passengers,HttpStatus.OK);
             }
@@ -99,7 +99,7 @@ public class BaseController {
     @RequestMapping(value = "/username", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<Object>   currentUserName(Principal principal, HttpServletRequest request) {
-        Set<Passenger> p = (Set<Passenger>) request.getSession().getAttribute("user");
+        Passenger p = (Passenger) request.getSession().getAttribute("user");
         return new ResponseEntity<>(p,HttpStatus.OK);
     }
 }

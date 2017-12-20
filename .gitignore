@@ -30,3 +30,5 @@ hs_err_pid*
 #target folder
 target/
 RailwayTicketReservationSystem.iml
+Client_Web_Server/public/js/siginin.js
+Spring_Server/src/main/resources/application.properties

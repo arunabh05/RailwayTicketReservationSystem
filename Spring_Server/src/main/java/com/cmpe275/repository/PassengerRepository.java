@@ -12,6 +12,6 @@ public interface PassengerRepository extends CrudRepository<Passenger, Long> {
 
     Set<Passenger> findPassengerByEmail(String email);
 
-    Set<Passenger> findPassengerByEmailAndPassword(String email, String password);
+    Passenger findPassengerByEmailAndPassword(String email, String password);
 
 }
