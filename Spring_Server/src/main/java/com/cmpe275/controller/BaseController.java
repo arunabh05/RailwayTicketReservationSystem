@@ -3,12 +3,14 @@ package com.cmpe275.controller;
 import com.cmpe275.domain.Passenger;
 import com.cmpe275.repository.PassengerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.security.Principal;
 import java.util.Set;
 
@@ -30,14 +32,19 @@ public class BaseController {
     PassengerRepository passengerRepository;
 
 
+    @Autowired
+    private HttpSession httpSession;
+
+
+
     @RequestMapping(value = "/admin/login")
     @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> adminLogin(@RequestParam(value = "username") String username,
                                         @RequestParam(value = "password") String password) {
         if(username.equals("admin")&&password.equals("admin")) {
-            return new ResponseEntity<>("Admin Login Successful", HttpStatus.OK);
+            return new ResponseEntity<>(null, HttpStatus.OK);
         }
-        return new ResponseEntity<>("Admin Login Failed", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
 
@@ -60,7 +67,7 @@ public class BaseController {
             }
         }
 
-        return new ResponseEntity<>("Could not register", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
 
@@ -69,19 +76,27 @@ public class BaseController {
     @GetMapping(value = "/verifyLogin")
     public ResponseEntity<Object> verifyLogin(@RequestParam(value = "email") String email,
                                               @RequestParam(value = "password") String password,
-                                              HttpServletRequest request) {
+                                              HttpSession request) {
 
         if(email == null || password == null) {
-            return new ResponseEntity<>("Enter both fields", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
         else {
             Passenger passengers = passengerRepository.findPassengerByEmailAndPassword(email,password);
             if(passengers != null) {
-                request.getSession().setAttribute("user",passengers);
+                //request.getSession().setAttribute("user",passengers);
+                //console.log(req.getHeaders());
+                httpSession.setAttribute("user",passengers);
+
+                request.setAttribute("session", passengers);
+
+                System.out.println(httpSession.getAttribute("user"));
+
+
                 return new ResponseEntity<>(passengers,HttpStatus.OK);
             }
         }
-        return new ResponseEntity<>("No such user found", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
     @CrossOrigin(origins = "http://localhost:3000")
@@ -91,14 +106,14 @@ public class BaseController {
             request.getSession().setAttribute("user",null);
             return new ResponseEntity<>("Logout successful",HttpStatus.OK);
         }
-        else return new ResponseEntity<>("Not logged in to log out",HttpStatus.BAD_REQUEST);
+        else return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
     }
 
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/username", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<Object>   currentUserName(Principal principal, HttpServletRequest request) {
+    public ResponseEntity<Object> currentUserName(Principal principal, HttpServletRequest request) {
         Passenger p = (Passenger) request.getSession().getAttribute("user");
         return new ResponseEntity<>(p,HttpStatus.OK);
     }

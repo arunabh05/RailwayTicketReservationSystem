@@ -33,7 +33,7 @@ public class AdminController {
 
         adminService.reset();
 
-        return new ResponseEntity<>("All train bookings cleared!", HttpStatus.OK);
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/admin/updateTrainCapacity")
@@ -43,7 +43,7 @@ public class AdminController {
         if(adminService.updateTrainCapacity(capacity)) {
             return new ResponseEntity<>("", HttpStatus.OK);
         }else{
-            return new ResponseEntity<>("Incorrect capacity entered! Enter a value between 5 and 1000, inclusive.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -54,7 +54,7 @@ public class AdminController {
 
         adminService.getTrainId(trainName, dateOfJourney);
 
-        return new ResponseEntity<>("Train Cancelled",HttpStatus.OK);
+        return new ResponseEntity<>(null,HttpStatus.OK);
     }
 
 

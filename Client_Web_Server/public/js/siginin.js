@@ -6,15 +6,18 @@ app.controller("login_controller", function ($scope, $http, $window) {
     $scope.validregistration = true;
     $scope.invalidregistration = true;
     console.log("Reporting from login controller");
-    $scope.signin = function () {
+
+
+
+    $scope.signin = function (req, res) {
         var username = $scope.emailid;
         var password = $scope.password;
         console.log("Reporting from sign in function");
         if(username==""||password==""){
             $scope.invalidlogin = false;
         }
-        //verifyLogin?email=j.n@gmail.com&password=abc
-        var URL = base_url+"/verifyLogin?email=" + username + "&password=" + password;
+
+         var URL = base_url+"/verifyLogin?email=" + username + "&password=" + password;
 
         console.log(URL);
 
@@ -23,6 +26,10 @@ app.controller("login_controller", function ($scope, $http, $window) {
             method: "GET"
         }).success(function (data) {
             console.log("Successful login", data);
+
+            $window.localStorage.setItem("user",data.id);
+
+
             $window.location.href = "/home";
         }).error(function (data) {
             $scope.invalidlogin = false;
@@ -30,6 +37,8 @@ app.controller("login_controller", function ($scope, $http, $window) {
     };
 
     $scope.register = function () {
+
+
         var firstname = $scope.firstname;
         var lastname = $scope.lastname;
         var email = $scope.emailid;
@@ -55,4 +64,11 @@ app.controller("login_controller", function ($scope, $http, $window) {
         });
 
     };
+
+
+    $scope.logout = function()
+    {
+        $window.localStorage.removeItem("user");
+    }
+
 });

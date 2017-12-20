@@ -3,10 +3,13 @@ package com.cmpe275.controller;
 import com.cmpe275.domain.Transaction;
 import com.cmpe275.service.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.List;
 import static com.cmpe275.constant.Constants.*;
 
@@ -20,6 +23,7 @@ public class SearchController {
 
     private final
     SearchService searchService;
+
 
     @Autowired
     public SearchController(SearchService searchService) {
@@ -38,11 +42,15 @@ public class SearchController {
                                     @RequestParam(value = "roundTrip", required = false, defaultValue = "false") boolean roundTrip,
                                     @RequestParam(value = "returnDate", required = false) String returnDate,
                                     @RequestParam(value = "returnTime", required = false) String returnTime,
-                                    @RequestParam(value = "exactTime", required = false, defaultValue = "false") boolean exactTime) {
-
+                                    @RequestParam(value = "exactTime", required = false, defaultValue = "false") boolean exactTime,
+                                    HttpSession request)
+    {
         if(departureTime == null || toStation == null || fromStation == null || dateOfJourney == null){
             return new ResponseEntity<>(INVALID_SEARCH_REQUEST, HttpStatus.BAD_REQUEST);
         }
+
+        System.out.println(request.getAttribute("user"));
+
 
         List<Transaction> transactions = searchService.getAvailableTrains(noOfPassengers,departureTime,fromStation,toStation,ticketType,
                 connections,roundTrip, returnDate, returnTime, dateOfJourney, exactTime);

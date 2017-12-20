@@ -22,8 +22,11 @@ app.controller("search_controller", function ($scope, $http, $filter, $window) {
     console.log("Reporting from Search controller");
     $scope.bookingsuccessful = true;
     console.log($scope.numberOfPassengers);
-    $scope.search = function () {
+    $scope.search = function (req,res) {
         console.log("Reporting from search function");
+
+        console.log($window.localStorage.getItem("user"));
+
         console.log($scope.passengers);
         console.log($scope.departure_time);
         console.log($scope.from_station);
@@ -87,7 +90,7 @@ app.controller("search_controller", function ($scope, $http, $filter, $window) {
                 console.log("test", $scope.name[key]);
             }
         }
-   var URL = base_url+"/api/transaction?userId=8";
+   var URL = base_url+"/api/transaction?userId="+$window.localStorage.getItem("user");
         $http({
             url: URL,
             method: "POST",
@@ -95,7 +98,6 @@ app.controller("search_controller", function ($scope, $http, $filter, $window) {
     }).success(function (data) {
             console.log("Booking successful");
             $scope.bookingsuccessful = false;
-            $window.location.assign = "/search";
         }).error(function (data) {
             console.log("Booking unsuccessful");
         });
@@ -106,11 +108,15 @@ app.controller("search_controller", function ($scope, $http, $filter, $window) {
     }
 });
 
-app.controller("bookings_controller", function ($scope, $http) {
+app.controller("bookings_controller", function ($scope, $http, $window) {
     console.log("Reporting from bookings controller");
 
+    var base_url='http://10.0.0.68:8080';
+
+    var URL =  base_url+"/api/getTransaction?userId="+$window.localStorage.getItem("user");
+
     $http({
-        url: base_url+"/api/getTransaction",
+        url: URL,
         method: "POST"
     }).success(function (data) {
         console.log(data);
@@ -118,6 +124,25 @@ app.controller("bookings_controller", function ($scope, $http) {
         $scope.myBookings = data;
         console.log("Successful login");
     })
+
+
+    $scope.cancel = function (data) {
+        console.log("Rerouting to search page");
+        console.log(data);
+
+        var URL = base_url+"/api/deleteTransaction?transactionId="+data.id+"&userId="+$window.localStorage.getItem("user");
+        $http({
+            url: URL,
+            method: "POST"
+        }).success(function (data) {
+            console.log("Booking successful");
+            $scope.bookingsuccessful = false;
+            $window.location.reload();
+        }).error(function (data) {
+            console.log("Booking unsuccessful");
+        });
+
+    }
 
 });
 
