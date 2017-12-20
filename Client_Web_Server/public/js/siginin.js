@@ -9,22 +9,22 @@ app.controller("login_controller", function ($scope, $http, $window) {
         var username = $scope.username;
         var password = $scope.password;
         console.log("Reporting from sign in function");
-
+        if(username==""||password==""){
+            $scope.invalidlogin = false;
+        }
         //verifyLogin?email=j.n@gmail.com&password=abc
-        var URL = "http://10.0.0.175:8080/verifyLogin?email=" + username + "&password=" + password;
+        var URL = "http://10.0.0.73:8080/verifyLogin?email=" + username + "&password=" + password;
 
         console.log(URL);
 
         $http({
             url: URL,
             method: "GET"
-
         }).success(function (data) {
             console.log("Successful login", data);
             $window.location.href = "/home";
         }).error(function (data) {
             $scope.invalidlogin = false;
-            alert("error");
         });
     };
 
@@ -35,7 +35,7 @@ app.controller("login_controller", function ($scope, $http, $window) {
         var password = $scope.password;
         console.log("Reporting from register function");
 
-        var URL = "http://10.0.0.175:8080/registerNewUser?firstName=" + firstname + "&lastName=" + lastname + "&email=" + email + "&password=" + password;
+        var URL = "http://10.0.0.73:8080/registerNewUser?firstName=" + firstname + "&lastName=" + lastname + "&email=" + email + "&password=" + password;
 
         console.log(URL);
 
@@ -45,9 +45,11 @@ app.controller("login_controller", function ($scope, $http, $window) {
 
         }).success(function (data) {
             console.log("Successful login");
+            $scope.validregistration = false;
+            $scope.invalidregistration = true;
         }).error(function (data) {
-            $scope.invalidlogin = false;
-            alert("error");
+            $scope.validregistration = true;
+            $scope.invalidregistration = false;
         });
 
     };
