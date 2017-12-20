@@ -47,14 +47,24 @@ public class AdminController {
         }
     }
 
-
-    @RequestMapping(value = "/admin/cancelTrain")
+    @RequestMapping(value = "/admin/getTrainId")
     @CrossOrigin(origins = "http://localhost:3000")
-    public ResponseEntity<?> cancelTrain(@RequestParam(value = "trainId") Long trainId,
-                                         @RequestParam(value = "dateOfJourney") String date){
-        adminService.cancelTrain(trainId, date);
-        return new ResponseEntity<Object>("Train cancelled.",HttpStatus.OK);
+    public ResponseEntity<?> getTrainId(@RequestParam(value = "trainName") String trainName,
+                                        @RequestParam(value = "dateOfJourney") String dateOfJourney) {
+
+        adminService.getTrainId(trainName, dateOfJourney);
+
+        return new ResponseEntity<>("Train Cancelled",HttpStatus.OK);
     }
+
+
+//    @RequestMapping(value = "/admin/cancelTrain")
+//    @CrossOrigin(origins = "http://localhost:3000")
+//    public ResponseEntity<?> cancelTrain(@RequestParam(value = "trainId") Long trainId,
+//                                         @RequestParam(value = "dateOfJourney") String date){
+//        adminService.cancelTrain(trainId, date);
+//        return new ResponseEntity<Object>("Train cancelled.",HttpStatus.OK);
+//    }
 
     @RequestMapping(value = "/admin/report/trainReservation")
     @CrossOrigin(origins = "http://localhost:3000")

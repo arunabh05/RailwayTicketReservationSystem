@@ -63,6 +63,14 @@ public class AdminService {
         }
     }
 
+
+    public void getTrainId(String trainName, String dateOfJourney) {
+        Long trainId = trainRepository.findByName(trainName).getId();
+        System.out.println("======="+ trainId + "   " + trainName);
+        cancelTrain(trainId, dateOfJourney);
+    }
+
+
     public void cancelTrain(Long trainId, String dateOfJourney){
 
         Date date = Utilities.stringToDate(dateOfJourney);

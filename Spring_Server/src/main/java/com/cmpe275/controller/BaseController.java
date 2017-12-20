@@ -30,6 +30,17 @@ public class BaseController {
     PassengerRepository passengerRepository;
 
 
+    @RequestMapping(value = "/admin/login")
+    @CrossOrigin(origins = "http://localhost:3000")
+    public ResponseEntity<?> adminLogin(@RequestParam(value = "username") String username,
+                                        @RequestParam(value = "password") String password) {
+        if(username == "admin" && password == "admin") {
+            return new ResponseEntity<Object>("Admin Login Successful", HttpStatus.OK);
+        }
+        return new ResponseEntity<Object>("Admin Login Failed", HttpStatus.BAD_REQUEST);
+    }
+
+
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping(value = "/registerNewUser")
     public ResponseEntity<Object> registerUser(@RequestParam(value = "firstName") String firstName,
