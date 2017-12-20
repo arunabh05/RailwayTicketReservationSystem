@@ -21,6 +21,7 @@ import java.util.Set;
 public class BaseController {
 
     @GetMapping(value = "/login")
+    @CrossOrigin(origins = "http://localhost:3000")
     public String getHomePage(){
         return "Home";
     }

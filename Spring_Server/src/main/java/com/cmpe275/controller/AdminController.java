@@ -4,6 +4,7 @@ import com.cmpe275.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +28,7 @@ public class AdminController {
 
 
     @RequestMapping(value = "/admin/reset")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> reset(){
 
         adminService.reset();
@@ -35,6 +37,7 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/admin/updateTrainCapacity")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> updateTrainCapacity(@RequestParam(value = "capacity") Long capacity){
 
         if(adminService.updateTrainCapacity(capacity)) {
@@ -46,6 +49,7 @@ public class AdminController {
 
 
     @RequestMapping(value = "/admin/cancelTrain")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> cancelTrain(@RequestParam(value = "trainId") Long trainId,
                                          @RequestParam(value = "dateOfJourney") String date){
         adminService.cancelTrain(trainId, date);
@@ -53,18 +57,21 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/admin/report/trainReservation")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> trainReservationRate(@RequestParam(value = "date")String date){
         Map<String, Integer> perTrainReservationRate = adminService.calculateTrainReservationRate(date);
         return new ResponseEntity<Object>(perTrainReservationRate, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/admin/report/systemReservation")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> systemReservationRate(@RequestParam(value = "date") String date){
         Map<String, Integer> perTrainReservationRate = adminService.calculateSystemReservationRate(date);
         return new ResponseEntity<Object>(perTrainReservationRate, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/admin/report/ticketReservation")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> ticketReservationRate(@RequestParam(value = "date") String date){
         Map<String, Integer> perTrainReservationRate = adminService.calculateTicketReservationRate(date);
         return new ResponseEntity<Object>(perTrainReservationRate, HttpStatus.OK);

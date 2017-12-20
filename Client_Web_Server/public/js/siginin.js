@@ -11,7 +11,7 @@ app.controller("login_controller",function($scope,$http,$window){
         console.log("Reporting from sign in function");
 
         //verifyLogin?email=j.n@gmail.com&password=abc
-        var URL = "http://10.0.0.73:8080/verifyLogin?email="+username+"&password="+password;
+        var URL = "http://10.0.0.175:8080/verifyLogin?email="+username+"&password="+password;
 
         console.log(URL);
 
@@ -22,6 +22,9 @@ app.controller("login_controller",function($scope,$http,$window){
         }).success(function(data){
             console.log("Successful login",data);
             $window.location.href="/home";
+        }).error(function(data){
+            $scope.invalidlogin = false;
+            alert("error");
         });
     };
     
@@ -32,7 +35,7 @@ app.controller("login_controller",function($scope,$http,$window){
         var password=$scope.password;
         console.log("Reporting from register function");
 
-        var URL = "http://10.0.0.73:8080/registerNewUser?firstName="+firstname+"&lastName="+lastname+"&email="+email+"&password="+password;
+        var URL = "http://10.0.0.175:8080/registerNewUser?firstName="+firstname+"&lastName="+lastname+"&email="+email+"&password="+password;
 
         console.log(URL);
 
@@ -42,7 +45,10 @@ app.controller("login_controller",function($scope,$http,$window){
 
         }).success(function(data){
             console.log("Successful login");
-        })
+        }).error(function(data){
+            $scope.invalidlogin = false;
+            alert("error");
+        });
 
-    }
+    };
 });

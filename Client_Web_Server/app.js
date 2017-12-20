@@ -36,8 +36,8 @@ if ('development' == app.get('env')) {
 }
 
 passport.use(new Strategy({
-        clientID: "",
-        clientSecret: "",
+        clientID: "2017812735158937",
+        clientSecret: "06d2e809992e0e3a2a9c940d23ff2378",
         callbackURL: 'http://localhost:3000/login/facebook/return',
         profileFields: ['id', 'emails', 'name']
     },
@@ -60,8 +60,8 @@ passport.use(new Strategy({
     }));
 
 passport.use(new GoogleStrategy({
-        clientID: "",
-        clientSecret: "",
+        clientID: "174611181935-3qajb6vd20ge96uoj2rth7s75lrd7tt6.apps.googleusercontent.com",
+        clientSecret: "GS-gcuro4FJiiO63Ak1osTiY",
         callbackURL: "http://localhost:3000/auth/google/callback"
     },
     function (accessToken, refreshToken, profile, cb) {
