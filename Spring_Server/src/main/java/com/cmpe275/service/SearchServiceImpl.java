@@ -34,14 +34,14 @@ public class SearchServiceImpl implements SearchService {
     public List<Transaction> getAvailableTrains(int numberOfPassengers, String departureTime, Long fromStationId,
                                                Long toStationId, String ticketType, String connections,
                                                boolean roundTrip, String returnDate, String returnTime,
-                                               String dateOfJourney) {
+                                               String dateOfJourney,boolean exactTime) {
 
 
         Station fromStation = stationRepository.findOne(fromStationId);
         Station toStation = stationRepository.findOne(toStationId);
 
         List<Transaction> transactionSet = filterTrainByConnections(ticketType,connections, fromStation, toStation,
-                departureTime, numberOfPassengers, dateOfJourney, roundTrip, returnDate, returnTime);
+                departureTime, numberOfPassengers, dateOfJourney, roundTrip, returnDate, returnTime, exactTime);
 
         printTransaction(transactionSet);
         return transactionSet;
@@ -49,35 +49,35 @@ public class SearchServiceImpl implements SearchService {
 
     private List<Transaction> filterTrainByConnections(String ticketType, String connections, Station fromStation,
             Station toStation, String departureTime, int numberOfPassengers, String dateOfJourney, boolean roundTrip,
-                                                      String returnDate, String returnTime){
+                                                      String returnDate, String returnTime, boolean exactTime){
         if(connections.equalsIgnoreCase(CONNECTION_TYPE_NONE)){
             return getTrainsWithNoStop(fromStation, toStation, ticketType, departureTime,numberOfPassengers ,roundTrip,
-                    returnDate, returnTime, dateOfJourney);
+                    returnDate, returnTime, dateOfJourney, exactTime);
         }
         else if(connections.equalsIgnoreCase(CONNECTION_TYPE_ONE)){
             return getTrainsWithOneStop(fromStation, toStation,ticketType, departureTime, numberOfPassengers, roundTrip,
-                    returnDate, returnTime, dateOfJourney);
+                    returnDate, returnTime, dateOfJourney,exactTime);
         }else{
             return getAllAvailableTrains(fromStation, toStation, ticketType, departureTime, numberOfPassengers, roundTrip,
-                    returnDate, returnTime, dateOfJourney);
+                    returnDate, returnTime, dateOfJourney, exactTime);
         }
     }
 
 
     private List<Transaction> getAllAvailableTrains(Station fromStation, Station toStation, String ticketType,
             String departureTime, int numberOfPassengers, boolean roundTrip, String returnDate, String returnTime,
-                                                    String dateOfJourney){
+                                                    String dateOfJourney, boolean exactTime){
         List<List<Search>> trainsList = getTwoStopTrainsList(fromStation, toStation,ticketType, departureTime,
-                dateOfJourney, numberOfPassengers);
+                dateOfJourney, numberOfPassengers, exactTime);
         List<Transaction> transactionList = new ArrayList<>();
         transactionList.addAll(getTrainsWithNoStop(fromStation,toStation,ticketType,departureTime,numberOfPassengers
-                ,roundTrip,returnDate,returnTime,dateOfJourney));
+                ,roundTrip,returnDate,returnTime,dateOfJourney, exactTime));
         transactionList.addAll(getTrainsWithOneStop(fromStation,toStation,ticketType,departureTime,numberOfPassengers
-                ,roundTrip,returnDate,returnTime,dateOfJourney));
+                ,roundTrip,returnDate,returnTime,dateOfJourney,exactTime));
 
         if(roundTrip){
             List<List<Search>> returnTrainList = getTwoStopTrainsList(toStation, fromStation,ticketType, returnTime,
-                    returnDate, numberOfPassengers);
+                    returnDate, numberOfPassengers, exactTime);
             transactionList.addAll(createTransactionForRoundTripTwoStopTrain(trainsList, returnTrainList, dateOfJourney,
                     numberOfPassengers, returnDate));
             //printTransaction(transactionList);
@@ -144,15 +144,15 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private List<List<Search>> getTwoStopTrainsList(Station fromStation, Station toStation, String ticketType, String departureTime,
-                                                    String dateOfJourney, int numberOfPassengers){
-        List<Search> firstStopTrains = getTop5TrainsFromStations(fromStation, departureTime);
+                                                    String dateOfJourney, int numberOfPassengers, boolean exactTime){
+        List<Search> firstStopTrains = getTop5TrainsFromStations(fromStation, departureTime,exactTime);
         firstStopTrains = filterTrainsByTicketType(firstStopTrains, ticketType);
         List<Search> secondStopTrains;
         List<Search> thirdStopTrains;
 
         List<List<Search>> trainsList = new ArrayList<>();
         for(Search search : firstStopTrains){
-            secondStopTrains = getTop5TrainsFromStations(search.getToStation(), search.getArrivalTime());
+            secondStopTrains = getTop5TrainsFromStations(search.getToStation(), search.getArrivalTime(),false);
             for(Search search1: secondStopTrains){
                 String departureTimeBefore = LocalTime.parse(search1.getArrivalTime()).
                         plusMinutes(DEPARTURE_TIME_TWO_HOUR_WAITING_TIME).toString();
@@ -234,11 +234,13 @@ public class SearchServiceImpl implements SearchService {
 
     private List<Transaction> getTrainsWithOneStop(Station fromStation, Station toStation,
             String ticketType, String departureTime, int numberOfPassengers, boolean roundTrip, String returnDate,
-                                                  String returnTime, String dateOfJourney){
+                                                  String returnTime, String dateOfJourney, boolean exactTime){
 
-        Map<Integer, List<Search>> connectingTrainTimeMap = getOneStopTrainsTimeMap(fromStation, toStation, ticketType, departureTime);
+        Map<Integer, List<Search>> connectingTrainTimeMap =
+                getOneStopTrainsTimeMap(fromStation, toStation, ticketType, departureTime, exactTime);
         if(roundTrip){
-            Map<Integer, List<Search>> returnConnectingTrainTimeMap = getOneStopTrainsTimeMap(toStation, fromStation, ticketType, returnTime);
+            Map<Integer, List<Search>> returnConnectingTrainTimeMap =
+                    getOneStopTrainsTimeMap(toStation, fromStation, ticketType, returnTime,exactTime);
 
             return createTransactionForRoundTripOneStopTrains(connectingTrainTimeMap, returnConnectingTrainTimeMap,
                     numberOfPassengers, dateOfJourney, returnDate);
@@ -286,9 +288,9 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private Map<Integer, List<Search>> getOneStopTrainsTimeMap(Station fromStation, Station toStation,
-                                                               String ticketType, String departureTime){
+                                                               String ticketType, String departureTime, boolean exactTime){
 
-        List<Search> allTrainFromSource = getAllTrainsFromStations(fromStation, departureTime);
+        List<Search> allTrainFromSource = getAllTrainsFromStations(fromStation, departureTime, exactTime);
         allTrainFromSource = filterTrainsByTicketType(allTrainFromSource, ticketType);
 
         Map<Search, List<Search>> connectingTrainsMap = new HashMap<>();
@@ -310,19 +312,30 @@ public class SearchServiceImpl implements SearchService {
         return getFastestConnectingTrains(connectingTrainsMap);
     }
 
-    private List<Search> getAllTrainsFromStations(Station fromStation, String departureTime){
-        departureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_MIN_WAITING_TIME).toString();
-        String twoHoursFromDepartureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_TWO_HOUR_WAITING_TIME).toString();
-        return searchRepository.findAllByFromStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
-                (fromStation, departureTime, twoHoursFromDepartureTime);
+    private List<Search> getAllTrainsFromStations(Station fromStation, String departureTime, boolean exactTime){
+        if(exactTime){
+            return searchRepository.findAllByFromStationAndDepartureTimeOrderByArrivalTime
+                    (fromStation, departureTime);
+        }else{
+            departureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_MIN_WAITING_TIME).toString();
+            String twoHoursFromDepartureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_TWO_HOUR_WAITING_TIME).toString();
+
+            return searchRepository.findAllByFromStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
+                    (fromStation, departureTime, twoHoursFromDepartureTime);
+        }
     }
 
 
-    private List<Search> getTop5TrainsFromStations(Station fromStation, String departureTime){
-        departureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_MIN_WAITING_TIME).toString();
-        String twoHoursFromDepartureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_TWO_HOUR_WAITING_TIME).toString();
-        return searchRepository.findTop5ByFromStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
-                (fromStation, departureTime, twoHoursFromDepartureTime);
+    private List<Search> getTop5TrainsFromStations(Station fromStation, String departureTime, boolean exactTime){
+        if(exactTime){
+            return searchRepository.findTop5ByFromStationAndDepartureTimeOrderByArrivalTime
+                    (fromStation, departureTime);
+        }else{
+            departureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_MIN_WAITING_TIME).toString();
+            String twoHoursFromDepartureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_TWO_HOUR_WAITING_TIME).toString();
+            return searchRepository.findTop5ByFromStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
+                    (fromStation, departureTime, twoHoursFromDepartureTime);
+        }
     }
 
     private Map<Integer, List<Search>> getFastestConnectingTrains(Map<Search, List<Search>> connectingTrainsMap) {
@@ -355,28 +368,39 @@ public class SearchServiceImpl implements SearchService {
 
     private List<Transaction> getTrainsWithNoStop(Station fromStation, Station toStation, String ticketType,
                                                  String departureTime, int numberOfPassengers, boolean roundTrip,
-                                                 String returnDate, String returnTime, String dateOfJourney){
+                                                 String returnDate, String returnTime, String dateOfJourney,
+                                                  boolean exactTime){
+        List<Search> trainSet;
 
-        departureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_MIN_WAITING_TIME).toString();
-        String departureTimeBefore = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_FIVE_HOUR_WAITING_TIME).toString();
-        List<Search> trainSet = searchRepository.findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
-                (fromStation, toStation, departureTime, departureTimeBefore);
+        trainSet = getListOfTrainsWithNoStop(fromStation, toStation, departureTime, exactTime);
         trainSet = filterTrainsByTicketType(trainSet, ticketType);
 
         List<Transaction> transactionList;
         List<Search> returnTrainList;
 
         if(roundTrip){
-            returnTime = LocalTime.parse(returnTime).plusMinutes(DEPARTURE_TIME_MIN_WAITING_TIME).toString();
-            String returnTimeBefore = LocalTime.parse(returnTime).plusMinutes(DEPARTURE_TIME_FIVE_HOUR_WAITING_TIME).toString();
-            returnTrainList = searchRepository.findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
-                    (toStation, fromStation, returnTime, returnTimeBefore);
+            returnTrainList = getListOfTrainsWithNoStop(toStation, fromStation, returnTime, exactTime);
             returnTrainList = filterTrainsByTicketType(returnTrainList, ticketType);
             transactionList = createTransactionForRoundTripNoStopTrains(trainSet, returnTrainList, dateOfJourney, returnDate, numberOfPassengers);
         }else{
             transactionList = createTransactionForSingleTripNoStopTrain(trainSet, dateOfJourney, numberOfPassengers);
         }
         return transactionList;
+    }
+
+    public List<Search> getListOfTrainsWithNoStop(Station fromStation, Station toStation, String departureTime,
+                                                  boolean exactTime){
+        List<Search> trainSet;
+        if(exactTime){
+            trainSet = searchRepository.findAllByFromStationAndToStationAndDepartureTimeOrderByArrivalTime
+                    (fromStation, toStation, departureTime);
+        }else{
+            departureTime = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_MIN_WAITING_TIME).toString();
+            String departureTimeBefore = LocalTime.parse(departureTime).plusMinutes(DEPARTURE_TIME_FIVE_HOUR_WAITING_TIME).toString();
+            trainSet = searchRepository.findAllByFromStationAndToStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
+                    (fromStation, toStation, departureTime, departureTimeBefore);
+        }
+        return trainSet;
     }
 
     private List<Transaction> createTransactionForSingleTripNoStopTrain(List<Search> trainList, String dateOfJourney,

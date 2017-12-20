@@ -11,6 +11,15 @@ import java.util.List;
  */
 public interface SearchRepository extends CrudRepository<Search, Long> {
 
+    List<Search> findAllByFromStationAndToStationAndDepartureTimeOrderByArrivalTime
+            (Station fromStation, Station toStation, String departureTime);
+
+    List<Search> findTop5ByFromStationAndDepartureTimeOrderByArrivalTime
+            (Station fromStation, String departureTime);
+
+    List<Search> findAllByFromStationAndDepartureTimeOrderByArrivalTime
+            (Station fromStation, String departureTime);
+
     List<Search> findAllByFromStationAndDepartureTimeAfterAndDepartureTimeBeforeOrderByArrivalTime
             (Station fromStation, String departureTimeAfter, String departureTimeBefore);
 

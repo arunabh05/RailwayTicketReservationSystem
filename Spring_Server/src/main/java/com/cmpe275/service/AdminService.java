@@ -28,15 +28,17 @@ public class AdminService {
     private final PassengerRepository passengerRepository;
     private final SearchService searchService;
     private final TransactionService transactionService;
+    private final NotificationService notificationService;
 
     @Autowired
-    public AdminService(TransactionRepository transactionRepository, TicketRepository ticketRepository, TrainRepository trainRepository, PassengerRepository passengerRepository, SearchService searchService, TransactionService transactionService) {
+    public AdminService(TransactionRepository transactionRepository, TicketRepository ticketRepository, TrainRepository trainRepository, PassengerRepository passengerRepository, SearchService searchService, TransactionService transactionService, NotificationService notificationService) {
         this.transactionRepository = transactionRepository;
         this.ticketRepository = ticketRepository;
         this.trainRepository = trainRepository;
         this.passengerRepository = passengerRepository;
         this.searchService = searchService;
         this.transactionService = transactionService;
+        this.notificationService = notificationService;
     }
 
 
@@ -94,14 +96,19 @@ public class AdminService {
         List<Transaction> transactionList = searchService.getAvailableTrains(numberOfPassengers,departureTime
                 ,fromStation.getId(),toStation.getId(),PARAMETER_VALUE_ANY, PARAMETER_VALUE_ANY, false,
                 PARAMETER_VALUE_EMPTY, PARAMETER_VALUE_EMPTY,
-                dateOfJourney);
+                dateOfJourney, false);
 
+        Transaction rebookingTransaction = null;
         if(transactionList.size()>0){
             Transaction transaction = transactionList.get(0);
             transaction.setPassenger(passenger);
             transaction.setListOfPassengers(passengers);
             printTransaction(transaction);
-            transactionService.makeTransaction(passenger.getId(), transaction);
+            rebookingTransaction = transactionService.makeTransaction(passenger.getId(), transaction);
+        }
+
+        if(rebookingTransaction == null){
+            notificationService.sendCancellationNotification(passenger);
         }
     }
 

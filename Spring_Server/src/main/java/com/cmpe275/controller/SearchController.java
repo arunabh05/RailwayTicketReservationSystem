@@ -35,16 +35,15 @@ public class SearchController {
                                     @RequestParam(value = "connection", required = false, defaultValue = "any") String connections,
                                     @RequestParam(value = "roundTrip", required = false, defaultValue = "false") boolean roundTrip,
                                     @RequestParam(value = "returnDate", required = false) String returnDate,
-                                    @RequestParam(value = "returnTime", required = false) String returnTime) {
-
-
+                                    @RequestParam(value = "returnTime", required = false) String returnTime,
+                                    @RequestParam(value = "exactTime", required = false, defaultValue = "false") boolean exactTime) {
 
         if(departureTime == null || toStation == null || fromStation == null || dateOfJourney == null){
             return new ResponseEntity<>(INVALID_SEARCH_REQUEST, HttpStatus.BAD_REQUEST);
         }
 
         List<Transaction> transactions = searchService.getAvailableTrains(noOfPassengers,departureTime,fromStation,toStation,ticketType,
-                connections,roundTrip, returnDate, returnTime, dateOfJourney);
+                connections,roundTrip, returnDate, returnTime, dateOfJourney, exactTime);
        return new ResponseEntity<>(transactions, HttpStatus.OK);
     }
 }

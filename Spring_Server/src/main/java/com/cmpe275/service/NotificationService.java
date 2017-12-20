@@ -46,7 +46,7 @@ public class NotificationService {
 
         List<Ticket> ticket = transaction.getTickets();
 
-        String text ="Dear user, \n\n\n" +
+        String text ="Dear ,"+ passenger.getFirstName()+"\n\n\n" +
                 "Your Itinerary:";
 
         String[] date;
@@ -66,16 +66,30 @@ public class NotificationService {
         }
 
         //might need to be updated
-        long price = 0;
-        for(int i=0; i<transaction.getTickets().size(); i++) {
-            price = ((ticket.get(i).getPrice()) * transaction.getListOfPassengers().size()) + 1;
-        }
+//        long price = 0;
+//        for(int i=0; i<transaction.getTickets().size(); i++) {
+//            price = ((ticket.get(i).getPrice()) * transaction.getListOfPassengers().size()) + 1;
+//        }
 
-        text = text + "\n\nTotal Price: " + price;
+        text = text + "\n\nTotal Price: " + transaction.getPrice();
 
         text = text + "\n\nPassenger(s): " + transaction.getListOfPassengers();
 
         mail.setText(text);
+
+        javaMailSender.send(mail);
+    }
+
+    public void sendCancellationNotification(Passenger passenger) {
+        SimpleMailMessage mail = new SimpleMailMessage();
+
+        mail.setFrom("railwaybookingsystem@gmail.com");
+        mail.setTo(passenger.getEmail());
+        mail.setSubject("Railway Ticket Booking Cancellation Notice");
+
+        mail.setText("Unfortunately, your train has been cancelled and re-booking of this train cannot be done. However, your other bookings will remain unchanged. " +
+                "If you want to cancel them please cancel the complete itinerary from the Railway Booking System." +
+                "Thank you for your cooperation. Sorry for the inconvenience.");
 
         javaMailSender.send(mail);
     }
