@@ -7,7 +7,7 @@ app.controller("login_controller", function ($scope, $http, $window) {
     $scope.invalidregistration = true;
     console.log("Reporting from login controller");
     $scope.signin = function () {
-        var username = $scope.username;
+        var username = $scope.emailid;
         var password = $scope.password;
         console.log("Reporting from sign in function");
         if(username==""||password==""){
@@ -49,6 +49,7 @@ app.controller("login_controller", function ($scope, $http, $window) {
             $scope.validregistration = false;
             $scope.invalidregistration = true;
         }).error(function (data) {
+            console.log(data);
             $scope.validregistration = true;
             $scope.invalidregistration = false;
         });
