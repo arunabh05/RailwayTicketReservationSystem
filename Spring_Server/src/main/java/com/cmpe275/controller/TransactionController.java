@@ -34,8 +34,7 @@ public class TransactionController {
 
     @RequestMapping(value = "/api/transaction")
     @CrossOrigin(origins = "http://localhost:3000")
-    public ResponseEntity<?> makeTransaction(@RequestParam(value = "userId") Long userId,
-                                             @RequestBody Transaction transaction, HttpServletRequest request){
+    public ResponseEntity<?> makeTransaction(@RequestBody Transaction transaction, HttpServletRequest request){
 
         Passenger passenger = (Passenger) request.getSession().getAttribute("user");
 
@@ -55,7 +54,7 @@ public class TransactionController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/api/getTransaction")
-    public ResponseEntity<?> getTransaction(@RequestParam(value = "userId") Long userId, HttpServletRequest request) {
+    public ResponseEntity<?> getTransaction(HttpServletRequest request) {
 
         Passenger passenger = (Passenger) request.getSession().getAttribute("user");
         List<Transaction> transactions = transactionService.getTransactions(passenger.getId());
@@ -67,7 +66,7 @@ public class TransactionController {
     @RequestMapping(value = "/api/deleteTransaction")
     @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> deleteTransaction(@RequestParam(value = "transactionId") Long transactionId,
-                                               @RequestParam(value = "userId") Long userId, HttpServletRequest request) {
+                                               HttpServletRequest request) {
 
         Passenger passenger = (Passenger) request.getSession().getAttribute("user");
         Transaction transaction2 = transactionService.deleteTransaction(passenger.getId(), transactionId);

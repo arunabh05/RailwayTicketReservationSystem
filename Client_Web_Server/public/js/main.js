@@ -110,7 +110,7 @@ app.controller("bookings_controller", function ($scope, $http) {
     console.log("Reporting from bookings controller");
 
     $http({
-        url: base_url+"/api/getTransaction?userId=1",
+        url: base_url+"/api/getTransaction",
         method: "POST"
     }).success(function (data) {
         console.log(data);
