@@ -31,7 +31,7 @@ public class TransactionController {
 
 
     @RequestMapping(value = "/api/transaction")
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "http://34.201.250.194:3000")
     public ResponseEntity<?> makeTransaction(@RequestParam(value = "userId") Long userId,
                                              @RequestBody Transaction transaction, HttpServletRequest request){
 
@@ -51,7 +51,7 @@ public class TransactionController {
 
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "http://34.201.250.194:3000")
     @RequestMapping(value = "/api/getTransaction")
     public ResponseEntity<?> getTransaction(@RequestParam(value = "userId") Long userId,
                                             HttpServletRequest request) {
@@ -64,7 +64,7 @@ public class TransactionController {
 
 
     @PostMapping(value = "/api/deleteTransaction")
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "http://34.201.250.194:3000")
     public ResponseEntity<Object> deleteTransaction(@RequestParam(value = "transactionId") Long transactionId,
                                                @RequestParam(value = "userId") Long userId) {
 

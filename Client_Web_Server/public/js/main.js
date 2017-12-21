@@ -18,7 +18,12 @@ app.config(['$routeProvider', '$locationProvider',
     }]);
 
 app.controller("search_controller", function ($scope, $http, $filter, $window) {
-    var base_url='http://10.0.0.73:8080';
+    var base_url='http://10.0.0.68:8080';
+
+    $scope.isExact = false;
+
+    $scope.date = new Date().toISOString();
+
     console.log("Reporting from Search controller");
     $scope.bookingsuccessful = true;
     console.log($scope.numberOfPassengers);
@@ -49,9 +54,21 @@ app.controller("search_controller", function ($scope, $http, $filter, $window) {
         var departure_month = ($scope.departure_time.getMonth() + 1);
         var departure_date = (departureDate.split(' ')[2]);
         var departure_year = (departureDate.split(' ')[3]);
+
+        var dept = $scope.departure_time.getTime("hh:mm");
+
+
+
         var departure_time = (departureDate.split(' ')[4]);
+
+        var dTime = departure_time.toString();
+        departure_time = (dTime.substring(0,5));
+
+        console.log($scope.isExact);
+
         if ($scope.roundtrip == undefined)
-            var URL = base_url+"/api/search?departureTime=" + departure_time + "&fromStation=" + $scope.from_station + "&toStation=" + $scope.to_station + "&connection=" + $scope.connections + "&dateOfJourney=" + departure_year + "-" + departure_month + "-" + departure_date;
+            var URL = base_url+"/api/search?departureTime=" + departure_time + "&fromStation=" + $scope.from_station + "&toStation=" + $scope.to_station +
+                "&ticketType=" + $scope.ticket_type+"&connection=" + $scope.connections + "&dateOfJourney=" + departure_year + "-" + departure_month + "-" + departure_date+"&exactTime="+$scope.isExact;
 
         else {
             var returnDate = $scope.return_time.toString();
@@ -61,7 +78,7 @@ app.controller("search_controller", function ($scope, $http, $filter, $window) {
             var return_time = (returnDate.split(' ')[4]);
             var URL = base_url+"/api/search?departureTime=" + departure_time + "&fromStation=" + $scope.from_station + "&toStation=" + $scope.to_station +
                 "&connection=" + $scope.connections + "&dateOfJourney=" + departure_year + "-" + departure_month + "-" + departure_date +
-                "ticketType=" + $scope.ticket_type + "&roundTrip=" + $scope.roundtrip + "&returnDate=" + return_year + "-" + return_month + "-" + return_date + "&returnTime=" + return_time;
+                "ticketType=" + $scope.ticket_type + "&roundTrip=" + $scope.roundtrip + "&returnDate=" + return_year + "-" + return_month + "-" + return_date + "&returnTime=" + return_time+"&exactTime"+$scope.isExact;
 
         }
         console.log("final check");
@@ -72,36 +89,69 @@ app.controller("search_controller", function ($scope, $http, $filter, $window) {
 
         }).success(function (data) {
             console.log(data);
+            if(data.length == 0)
+            {
+                alert("No trains found. Please try again");
+            }
             $scope.result = null;
             $scope.result = data;
             console.log("Successful login");
         })
     }
+
+
+
+
+
+
     $scope.book = function (data) {
         $scope.train_data = data;
         console.log($scope.train_data);
+        //$scope.train_data.listOfPassengers = [];
     }
+
+
     $scope.confirmBooking = function () {
         console.log("phh", $scope.train_data);
         console.log("hello", $scope.name);
         console.log("hello", $scope.name.length);
+        $scope.train_data.listOfPassengers = [];
+        for(var x in $scope.train_data.tickets)
+        {
+            if($scope.train_data.tickets.hasOwnProperty(x))
+            {
+                console.log($scope.train_data.tickets[x].numberOfPassengers);
+                $scope.train_data.tickets[x].numberOfPassengers = $scope.numberOfPassengers.length;
+                console.log($scope.train_data.tickets[x].numberOfPassengers);
+            }
+
+            x.numberOfPassengers= $scope.numberOfPassengers.length;
+        }
+
         for (var key in $scope.name) {
             if ($scope.name.hasOwnProperty(key)) {
                 console.log("test", $scope.name[key]);
+                $scope.train_data.listOfPassengers.push($scope.name[key]);
+
             }
         }
-   var URL = base_url+"/api/transaction?userId="+$window.localStorage.getItem("user");
+
+
+        var URL = base_url+"/api/transaction?userId="+$window.localStorage.getItem("user");
         $http({
             url: URL,
             method: "POST",
             data: $scope.train_data
-    }).success(function (data) {
-            console.log("Booking successful");
-            $scope.bookingsuccessful = false;
-        }).error(function (data) {
-            console.log("Booking unsuccessful");
-        });
+            }).success(function (data) {
+                console.log("Booking successful");
+                $scope.bookingsuccessful = false;
+            }).error(function (data) {
+                console.log("Booking unsuccessful");
+            });
     }
+
+
+
     $scope.searchRoute = function () {
         console.log("Rerouting to search page");
         $window.location.reload();
@@ -117,7 +167,7 @@ app.controller("search_controller", function ($scope, $http, $filter, $window) {
 app.controller("bookings_controller", function ($scope, $http, $window) {
     console.log("Reporting from bookings controller");
 
-    var base_url='http://10.0.0.73:8080';
+    var base_url='http://10.0.0.68:8080';
 
     var URL =  base_url+"/api/getTransaction?userId="+$window.localStorage.getItem("user");
 
@@ -135,6 +185,26 @@ app.controller("bookings_controller", function ($scope, $http, $window) {
     $scope.cancel = function (data) {
         console.log("Rerouting to search page");
         console.log(data);
+
+        /*for(var x in data.tickets)
+            {
+                if(data.tickets.hasOwnProperty(x))
+                {
+                  /!*  console.log(data.tickets[x].numberOfPassengers);
+                    $scope.train_data.tickets[x].numberOfPassengers = $scope.numberOfPassengers.length;
+                    console.log(data.tickets[x].numberOfPassengers);
+*!/
+                    var date = new Date().toISOString();
+
+                    if(data.tickets[x].dateOfJourney.toISOString() > date)
+                    {
+
+                    }
+                }
+
+                x.numberOfPassengers= $scope.numberOfPassengers.length;
+            }*/
+
 
         var URL = base_url+"/api/deleteTransaction?transactionId="+data.id+"&userId="+$window.localStorage.getItem("user");
         $http({

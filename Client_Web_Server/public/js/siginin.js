@@ -1,7 +1,7 @@
 var app = angular.module('login', []);
 
 app.controller("login_controller", function ($scope, $http, $window) {
-    var base_url='http://10.0.0.73:8080';
+    var base_url='http://10.0.0.68:8080';
     $scope.invalidlogin = true;
     $scope.validregistration = true;
     $scope.invalidregistration = true;

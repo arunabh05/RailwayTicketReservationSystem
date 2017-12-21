@@ -137,7 +137,7 @@ public class AdminService {
         return null;
     }
 
-    public Map<String, Integer> calculateTicketReservationRate(String date){
+    public Map<String, Integer> calculateTicketReservationRate(String date) {
         return null;
     }
 }

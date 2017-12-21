@@ -503,25 +503,28 @@ public class SearchServiceImpl implements SearchService {
         Map<Integer,List<Ticket>> ticketMap = new HashMap<>();
         List<Ticket> tickets;
 
+
         for(int i=0;i<5;i++){
-            tickets = new ArrayList<>();
-            Search firstTrain = connectingTrainTimeMap.get(arrivalTimeTrainList.get(i)).get(0);
-            Search secondTrain = connectingTrainTimeMap.get(arrivalTimeTrainList.get(i)).get(1);
+            if(connectingTrainTimeMap.size() > i){
+                tickets = new ArrayList<>();
+                Search firstTrain = connectingTrainTimeMap.get(arrivalTimeTrainList.get(i)).get(0);
+                Search secondTrain = connectingTrainTimeMap.get(arrivalTimeTrainList.get(i)).get(1);
 
-            Date firstTrainDate;
-            Date secondTrainDate;
-            secondTrainDate = Utilities.stringToDate(dateOfJourney);
-            firstTrainDate = Utilities.stringToDate(dateOfJourney);
+                Date firstTrainDate;
+                Date secondTrainDate;
+                secondTrainDate = Utilities.stringToDate(dateOfJourney);
+                firstTrainDate = Utilities.stringToDate(dateOfJourney);
 
-            firstTrainTicket = new Ticket(firstTrain, firstTrainDate, numberOfPassengers);
-            secondTrainTicket = new Ticket(secondTrain, secondTrainDate, numberOfPassengers);
+                firstTrainTicket = new Ticket(firstTrain, firstTrainDate, numberOfPassengers);
+                secondTrainTicket = new Ticket(secondTrain, secondTrainDate, numberOfPassengers);
 
-            if(ticketService.isTrainAvailable(firstTrainTicket.getTrain(), dateOfJourney, numberOfPassengers) &&
-                    ticketService.isTrainAvailable(secondTrainTicket.getTrain(), dateOfJourney, numberOfPassengers)){
+                if(ticketService.isTrainAvailable(firstTrainTicket.getTrain(), dateOfJourney, numberOfPassengers) &&
+                        ticketService.isTrainAvailable(secondTrainTicket.getTrain(), dateOfJourney, numberOfPassengers)){
 
-                tickets.add(firstTrainTicket);
-                tickets.add(secondTrainTicket);
-                ticketMap.put(i,tickets);
+                    tickets.add(firstTrainTicket);
+                    tickets.add(secondTrainTicket);
+                    ticketMap.put(i,tickets);
+                }
             }
         }
         return ticketMap;

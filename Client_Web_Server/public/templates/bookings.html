@@ -1,6 +1,5 @@
 <h1>Welcome to bookings page</h1>
 
-<h4 class="card-title">Search Results</h4>
 <div class="row">
     <div class="col-md-10">
         <div class="card" ng-repeat="x in myBookings">
@@ -17,10 +16,10 @@
                             <th scope="col">To Station</th>
                             <th scope="col">Departure Time</th>
                             <th scope="col">Arrival Time</th>
-                            <th scope="col">Duration</th>
+                            <!--<th scope="col">Duration</th>-->
                             <th scope="col">Price</th>
                             <th scope="col">Total Duration</th>
-                            <th scope="col">Total Price</th>
+                            <!--<th scope="col">Total Price</th>-->
                         </tr>
                         </thead>
                         <tbody>
@@ -30,10 +29,10 @@
                             <td>{{y.train.toStation.name}}</td>
                             <td>{{y.train.departureTime}}</td>
                             <td>{{y.train.arrivalTime}}</td>
-                            <td>{{y.train.duration}}</td>
+                           <!-- <td>{{y.train.duration}}</td>-->
                             <td>{{y.price}}</td>
                             <td>{{x.duration}}</td>
-                            <td>{{x.price}}</td>
+                            <!--<td>{{x.price}}</td>-->
                         </tr>
                         </tbody>
                     </table>

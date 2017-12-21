@@ -18,7 +18,7 @@ import static com.cmpe275.constant.Constants.*;
  */
 @RestController
 @RequestMapping(value = "/api/search")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://34.201.250.194:3000")
 public class SearchController {
 
     private final
@@ -31,7 +31,7 @@ public class SearchController {
     }
 
     @PostMapping
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "http://34.201.250.194:3000")
     public ResponseEntity<?> search(@RequestParam(value = "noOfPassengers",required = false, defaultValue = "1") Integer noOfPassengers,
                                     @RequestParam(value = "departureTime") String departureTime,
                                     @RequestParam(value = "dateOfJourney") String dateOfJourney,

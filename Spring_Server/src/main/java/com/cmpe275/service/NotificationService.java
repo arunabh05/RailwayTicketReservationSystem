@@ -46,7 +46,7 @@ public class NotificationService {
 
         List<Ticket> ticket = transaction.getTickets();
 
-        String text ="Dear ,"+ passenger.getFirstName()+"\n\n\n" +
+        String text ="Dear "+ passenger.getFirstName()+",\n\n\n" +
                 "Your Itinerary:";
 
         String[] date;
@@ -66,12 +66,12 @@ public class NotificationService {
         }
 
         //might need to be updated
-//        long price = 0;
-//        for(int i=0; i<transaction.getTickets().size(); i++) {
-//            price = ((ticket.get(i).getPrice()) * transaction.getListOfPassengers().size()) + 1;
-//        }
+        long price = 0;
+        for(int i=0; i<transaction.getTickets().size(); i++) {
+            price = ((ticket.get(i).getPrice()) * transaction.getListOfPassengers().size()) + 1;
+        }
 
-        text = text + "\n\nTotal Price: " + transaction.getPrice();
+        text = text + "\n\nTotal Price: " + price;
 
         text = text + "\n\nPassenger(s): " + transaction.getListOfPassengers();
 

@@ -23,7 +23,7 @@ import java.util.Set;
 public class BaseController {
 
     @GetMapping(value = "/login")
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "http://34.201.250.194:3000")
     public String getHomePage(){
         return "Home";
     }
@@ -38,7 +38,7 @@ public class BaseController {
 
 
     @RequestMapping(value = "/admin/login")
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "http://34.201.250.194:3000")
     public ResponseEntity<?> adminLogin(@RequestParam(value = "username") String username,
                                         @RequestParam(value = "password") String password) {
         if(username.equals("admin")&&password.equals("admin")) {
@@ -48,7 +48,7 @@ public class BaseController {
     }
 
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "http://34.201.250.194:3000")
     @PostMapping(value = "/registerNewUser")
     public ResponseEntity<Object> registerUser(@RequestParam(value = "firstName") String firstName,
                                                @RequestParam(value = "lastName") String lastName,
@@ -72,7 +72,7 @@ public class BaseController {
 
 
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "http://34.201.250.194:3000")
     @GetMapping(value = "/verifyLogin")
     public ResponseEntity<Object> verifyLogin(@RequestParam(value = "email") String email,
                                               @RequestParam(value = "password") String password,
@@ -99,7 +99,7 @@ public class BaseController {
         return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "http://34.201.250.194:3000")
     @GetMapping(value = "/logout")
     public ResponseEntity<Object> logout(HttpServletRequest request) {
         if(request.getSession().getAttribute("user") != null || request.getSession().getAttribute("user") != "") {
@@ -110,7 +110,7 @@ public class BaseController {
     }
 
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "http://34.201.250.194:3000")
     @RequestMapping(value = "/username", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<Object> currentUserName(Principal principal, HttpServletRequest request) {
